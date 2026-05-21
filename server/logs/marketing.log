@@ -1,0 +1,65 @@
+[2026-05-20T05:20:42.924Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T05:21:07.620Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T05:21:15.103Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T05:24:49.881Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T05:34:26.268Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T05:37:29.949Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T06:05:59.411Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T06:19:19.515Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T06:23:41.082Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T06:50:09.349Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T07:23:58.878Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T07:24:12.671Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T07:53:10.700Z] INFO: Admin campaign "Pongal" created. Queued 1 notification jobs. 
+[2026-05-20T07:53:15.479Z] INFO: Queue Worker: Found 1 ready jobs to process. 
+[2026-05-20T07:53:15.774Z] INFO: Processing notification job 6a0d68663ba326333bf69093 for user 6a0d4d448915aa6113dfa6b1 (8925393946) 
+[2026-05-20T07:53:15.776Z] INFO: [SANDBOX MOCK] Send WhatsApp to +918925393946: "hello" [Image: https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80] 
+[2026-05-20T07:53:16.407Z] INFO: Job 6a0d68663ba326333bf69093 sent successfully. Provider ID: mock_wa_kt8kromse 
+[2026-05-20T08:46:54.659Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T09:03:35.903Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T09:37:25.385Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T09:42:29.711Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T09:43:09.369Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T09:43:49.800Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T09:51:43.143Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T09:51:46.666Z] INFO: Admin campaign "Pongal" created. Queued 2 notification jobs. 
+[2026-05-20T09:51:48.516Z] INFO: Queue Worker: Found 2 ready jobs to process. 
+[2026-05-20T09:51:48.815Z] INFO: Processing notification job 6a0d843293b94e255c31ab17 for user 6a0d4d448915aa6113dfa6b1 (8925393946) 
+[2026-05-20T09:51:48.818Z] INFO: [SANDBOX MOCK] Send WhatsApp to +918925393946: "Hello" [Image: https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80] 
+[2026-05-20T09:51:48.823Z] INFO: Processing notification job 6a0d843293b94e255c31ab18 for user 6a0d608a963290db35f95455 (9825393946) 
+[2026-05-20T09:51:48.825Z] INFO: [SANDBOX MOCK] Send WhatsApp to +919825393946: "Hello" [Image: https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80] 
+[2026-05-20T09:51:49.484Z] INFO: Job 6a0d843293b94e255c31ab18 sent successfully. Provider ID: mock_wa_6izqpwqxg 
+[2026-05-20T09:51:49.505Z] INFO: Job 6a0d843293b94e255c31ab17 sent successfully. Provider ID: mock_wa_07hkqotiz 
+[2026-05-20T09:52:26.911Z] INFO: Campaign 6a0d68653ba326333bf6908c has been cancelled and deleted. 
+[2026-05-20T09:52:34.117Z] INFO: Campaign 6a0d843193b94e255c31ab10 has been cancelled and deleted. 
+[2026-05-20T09:55:32.643Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T10:02:28.770Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T10:23:42.296Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T10:23:59.873Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T10:30:59.620Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T10:37:58.775Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T10:47:31.394Z] INFO: Admin campaign "Diwali" created. Queued 2 notification jobs. 
+[2026-05-20T10:47:34.992Z] INFO: Queue Worker: Found 2 ready jobs to process. 
+[2026-05-20T10:47:35.249Z] INFO: Processing notification job 6a0d91435b13a36cf2313651 for user 6a0d4d448915aa6113dfa6b1 (8925393946) 
+[2026-05-20T10:47:35.251Z] INFO: [SANDBOX MOCK] Send WhatsApp to +918925393946: "Diwali offer" [Image: https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80] 
+[2026-05-20T10:47:35.253Z] INFO: Processing notification job 6a0d91435b13a36cf2313652 for user 6a0d608a963290db35f95455 (9825393946) 
+[2026-05-20T10:47:35.254Z] INFO: [SANDBOX MOCK] Send WhatsApp to +919825393946: "Diwali offer" [Image: https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80] 
+[2026-05-20T10:47:35.841Z] INFO: Job 6a0d91435b13a36cf2313651 sent successfully. Provider ID: mock_wa_v1nl2156n 
+[2026-05-20T10:47:35.847Z] INFO: Job 6a0d91435b13a36cf2313652 sent successfully. Provider ID: mock_wa_ddz0gan4v 
+[2026-05-20T10:54:44.228Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T10:56:58.617Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T10:58:27.939Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T10:59:14.565Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T11:01:30.054Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T11:08:47.543Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T11:09:20.571Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T11:16:17.108Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T11:26:31.780Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T11:29:11.225Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T11:29:41.475Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T11:30:00.926Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T11:33:24.170Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T11:42:57.126Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T12:26:50.548Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T17:09:58.197Z] INFO: Notification Queue Worker successfully initialized. 
+[2026-05-20T17:12:07.035Z] INFO: Notification Queue Worker successfully initialized. 
