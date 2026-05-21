@@ -6,6 +6,7 @@ import { addToCart } from '../../redux/slices/cartSlice';
 import { addToWishlist, removeFromWishlist } from '../../redux/slices/wishlistSlice';
 import { useToast } from '../../components/common/ToastContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ProductCard from '../../components/common/ProductCard';
 import { Star, ShoppingBag, Heart, Check, Plus, Minus, ArrowLeft, Send } from 'lucide-react';
 import API from '../../services/api';
 
@@ -228,9 +229,9 @@ const ProductDetails = () => {
 
           {/* Pricing tags */}
           <div className="flex items-baseline space-x-3.5 border-y border-slate-100 dark:border-slate-800/80 py-4">
-            <span className="text-3xl font-extrabold text-cyan-600 dark:text-cyan-400">${product.price.toFixed(2)}</span>
+            <span className="text-3xl font-extrabold text-cyan-600 dark:text-cyan-400">₹{product.price.toFixed(2)}</span>
             {product.compareAtPrice && product.compareAtPrice > product.price && (
-              <span className="text-base text-slate-400 line-through">${product.compareAtPrice.toFixed(2)}</span>
+              <span className="text-base text-slate-400 line-through">₹{product.compareAtPrice.toFixed(2)}</span>
             )}
             
             {/* Stock availability indicators */}
@@ -444,32 +445,7 @@ const ProductDetails = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {relatedProducts.map((p) => (
-              <div 
-                key={p._id}
-                className="glass-panel p-3 rounded-3xl border border-white/10 hover:border-cyan-500/20 glass-panel-hover"
-              >
-                <Link to={`/product/${p.slug}`} className="block relative aspect-square rounded-2xl overflow-hidden mb-4">
-                  <img
-                    src={p.images[0]}
-                    alt={p.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </Link>
-                <div className="px-2 space-y-1">
-                  <Link to={`/product/${p.slug}`} className="block text-base font-bold truncate hover:text-cyan-500 transition-colors">
-                    {p.name}
-                  </Link>
-                  <div className="flex justify-between items-center pt-2">
-                    <span className="text-lg font-extrabold text-cyan-600 dark:text-cyan-400">${p.price}</span>
-                    <Link
-                      to={`/product/${p.slug}`}
-                      className="px-3.5 py-1.5 text-[10px] font-bold rounded-full bg-slate-900 hover:bg-cyan-500 dark:bg-slate-800 dark:hover:bg-cyan-600 text-white transition-all"
-                    >
-                      View Details
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              <ProductCard key={p._id} product={p} />
             ))}
           </div>
         </section>

@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { fetchProducts, setFilters, resetFilters } from '../../redux/slices/productSlice';
 import SkeletonCard from '../../components/common/SkeletonCard';
+import ProductCard from '../../components/common/ProductCard';
 import { Link } from 'react-router-dom';
 import { Star, Filter, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import API from '../../services/api';
@@ -357,48 +358,7 @@ const ProductListings = () => {
               </div>
             ) : (
               products.map((p) => (
-                <div 
-                  key={p._id}
-                  className="glass-panel p-3 rounded-3xl border border-white/10 hover:border-cyan-500/20 glass-panel-hover"
-                >
-                  <Link to={`/product/${p.slug}`} className="block relative aspect-square rounded-2xl overflow-hidden mb-4">
-                    <img
-                      src={p.images[0]}
-                      alt={p.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 animate-fadeIn"
-                    />
-                    {p.compareAtPrice && p.compareAtPrice > p.price && (
-                      <span className="absolute top-3.5 left-3.5 bg-rose-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
-                        Sale
-                      </span>
-                    )}
-                  </Link>
-                  <div className="px-2 space-y-1">
-                    <span className="text-[10px] text-slate-450 uppercase font-bold tracking-widest">{p.category?.name}</span>
-                    <Link to={`/product/${p.slug}`} className="block text-lg font-bold truncate hover:text-cyan-500 transition-colors">
-                      {p.name}
-                    </Link>
-                    <div className="flex items-center space-x-1.5 pt-0.5">
-                      <Star className="w-4.5 h-4.5 text-amber-400 fill-amber-400" />
-                      <span className="text-sm font-bold">{p.ratings}</span>
-                      <span className="text-xs text-slate-400">({p.numOfReviews})</span>
-                    </div>
-                    <div className="flex justify-between items-center pt-2">
-                      <div className="flex items-baseline space-x-1.5">
-                        <span className="text-xl font-extrabold text-cyan-600 dark:text-cyan-400">${p.price}</span>
-                        {p.compareAtPrice && p.compareAtPrice > p.price && (
-                          <span className="text-sm text-slate-400 line-through">₹{p.compareAtPrice}</span>
-                        )}
-                      </div>
-                      <Link
-                        to={`/product/${p.slug}`}
-                        className="px-4 py-2 text-xs font-bold rounded-full bg-slate-900 hover:bg-cyan-500 dark:bg-slate-850 dark:hover:bg-cyan-650 text-white transition-all"
-                      >
-                        View Details
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                <ProductCard key={p._id} product={p} />
               ))
             )}
           </div>
