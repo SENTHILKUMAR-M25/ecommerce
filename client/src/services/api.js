@@ -37,7 +37,7 @@ import axios from 'axios';
 const API = axios.create({
   baseURL:
     import.meta.env.VITE_API_URL ||
-    'https://aura-2-2b96.onrender.com/api',
+    'https://ecommerce-73js.onrender.com/api',
 
   headers: { 
     'Content-Type': 'application/json',

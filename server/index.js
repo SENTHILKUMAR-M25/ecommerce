@@ -43,7 +43,7 @@ app.use(
   cors({
     origin: [
       
-      'https://aura-three-liart.vercel.app',
+      'https://ecommerce-eight-virid-50.vercel.app',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
