@@ -1,14 +1,93 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, ArrowRight, ShieldCheck, Truck, RotateCcw, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingBag, ArrowRight, ShieldCheck, Truck, RotateCcw, Star, ChevronLeft, ChevronRight, Ticket, Copy, Check } from 'lucide-react';
 import API from '../../services/api';
 import SkeletonCard from '../../components/common/SkeletonCard';
 import ProductCard from '../../components/common/ProductCard';
+import { useToast } from '../../components/common/ToastContext';
+
+const CouponCard = ({ coupon }) => {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(coupon.code);
+    setCopied(true);
+    toast(`Coupon code "${coupon.code}" copied to clipboard!`, 'success');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const isPercent = coupon.discountType === 'percentage';
+  const formattedExpiry = new Date(coupon.expiryDate).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  return (
+    <div className="relative overflow-hidden glass-panel border border-white/10 dark:border-white/5 bg-slate-950/70 p-6 rounded-3xl flex flex-col justify-between h-48 shadow-lg group hover:border-cyan-500/30 transition-all duration-300">
+      {/* Decorative semi-circles on sides to simulate a real ticket */}
+      <div className="absolute top-1/2 -left-3 w-6 h-6 rounded-full bg-slate-50 dark:bg-[#080a13] -translate-y-1/2 border-r border-white/10 z-10"></div>
+      <div className="absolute top-1/2 -right-3 w-6 h-6 rounded-full bg-slate-50 dark:bg-[#080a13] -translate-y-1/2 border-l border-white/10 z-10"></div>
+      
+      {/* Background glow effects */}
+      <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-indigo-500/10 blur-2xl group-hover:bg-indigo-500/20 transition-all duration-300"></div>
+      <div className="absolute -bottom-10 -left-10 w-24 h-24 rounded-full bg-cyan-500/10 blur-2xl group-hover:bg-cyan-500/20 transition-all duration-300"></div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-500/20 px-2.5 py-1 rounded-full flex items-center gap-1">
+            <Ticket className="w-3 h-3" />
+            <span>Active Discount</span>
+          </span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase">Expires {formattedExpiry}</span>
+        </div>
+
+        <div>
+          <h3 className="text-2xl font-black text-white">
+            {isPercent ? `${coupon.discountValue}% OFF` : `₹${coupon.discountValue} OFF`}
+          </h3>
+          <p className="text-xs text-slate-400 mt-1">
+            Min Purchase: <span className="text-slate-200 font-semibold">₹{coupon.minPurchase}</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-dashed border-white/10 pt-4 mt-2">
+        <div className="bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-xl">
+          <code className="text-sm font-black text-cyan-400 tracking-wider uppercase select-all">{coupon.code}</code>
+        </div>
+
+        <button
+          onClick={handleCopy}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-xs shadow-md transition-all active:scale-95 ${
+            copied
+              ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+              : 'bg-white hover:bg-cyan-400 hover:text-white text-slate-950'
+          }`}
+        >
+          {copied ? (
+            <>
+              <Check className="w-3.5 h-3.5 animate-bounce" />
+              <span>Copied</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3.5 h-3.5" />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const Home = () => {
   const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [activeCoupons, setActiveCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -56,6 +135,13 @@ const Home = () => {
         ]);
         setCategories(catRes.data.data);
         setFeaturedProducts(prodRes.data.data);
+
+        try {
+          const couponRes = await API.get('/coupons/active');
+          setActiveCoupons(couponRes.data.data || []);
+        } catch (couponErr) {
+          console.error('Failed to load active coupons:', couponErr);
+        }
       } catch (err) {
         console.error('Home Page loading error:', err);
       } finally {
@@ -273,24 +359,39 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 5. SEASONAL PROMO BANNER */}
-      <section className="relative rounded-3xl overflow-hidden glass-panel border border-white/10 dark:border-white/5 bg-slate-950 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between text-center md:text-left gap-6 shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-950/80 via-slate-950 to-cyan-950/80 opacity-70"></div>
-        <div className="relative space-y-3 max-w-lg">
-          <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">Exclusive Promo</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white">Unlock ₹50 Off Your Order</h2>
-          <p className="text-slate-450 leading-relaxed text-sm md:text-base">
-            Use checkout coupon code <code className="text-white bg-white/10 px-2 py-0.5 rounded font-bold">WELCOME50</code> for any purchase over ₹250. Valid for this month only!
-          </p>
+      {/* 5. SEASONAL PROMO BANNER / ACTIVE COUPONS */}
+      <section className="space-y-8">
+        <div>
+          <h2 className="text-3xl font-extrabold tracking-tight">Special Deals & Coupons</h2>
+          <p className="text-slate-500 mt-1">Copy these codes at checkout to unlock instant rewards and discounts.</p>
         </div>
-        <div className="relative">
-          <Link
-            to="/products"
-            className="inline-block px-8 py-3.5 rounded-full bg-white hover:bg-cyan-400 hover:text-white text-slate-950 font-bold active:scale-95 transition-all shadow-lg"
-          >
-            Browse Collections
-          </Link>
-        </div>
+
+        {activeCoupons.length === 0 ? (
+          <div className="relative rounded-3xl overflow-hidden glass-panel border border-white/10 dark:border-white/5 bg-slate-950 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between text-center md:text-left gap-6 shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-950/80 via-slate-950 to-cyan-950/80 opacity-70"></div>
+            <div className="relative space-y-3 max-w-lg">
+              <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">Exclusive Promo</span>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white">Unlock ₹50 Off Your Order</h2>
+              <p className="text-slate-450 leading-relaxed text-sm md:text-base">
+                Use checkout coupon code <code className="text-white bg-white/10 px-2 py-0.5 rounded font-bold">WELCOME50</code> for any purchase over ₹250. Valid for this month only!
+              </p>
+            </div>
+            <div className="relative">
+              <Link
+                to="/products"
+                className="inline-block px-8 py-3.5 rounded-full bg-white hover:bg-cyan-400 hover:text-white text-slate-950 font-bold active:scale-95 transition-all shadow-lg"
+              >
+                Browse Collections
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {activeCoupons.map((coupon) => (
+              <CouponCard key={coupon._id} coupon={coupon} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* 6. GLOWING TESTIMONIALS */}

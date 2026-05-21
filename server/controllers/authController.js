@@ -39,6 +39,7 @@ export const registerUser = async (req, res, next) => {
         role: user.role,
         phno: user.phno,
         addresses: user.addresses,
+        referralCode: user.referralCode,
         token: generateToken(user._id)
       }
     });
@@ -66,6 +67,7 @@ export const loginUser = async (req, res, next) => {
           role: user.role,
           phno: user.phno,
           addresses: user.addresses,
+          referralCode: user.referralCode,
           token: generateToken(user._id)
         }
       });
@@ -94,7 +96,8 @@ export const getUserProfile = async (req, res, next) => {
           email: user.email,
           role: user.role,
           phno: user.phno,
-          addresses: user.addresses
+          addresses: user.addresses,
+          referralCode: user.referralCode
         }
       });
     } else {
@@ -134,6 +137,7 @@ export const updateUserProfile = async (req, res, next) => {
           role: updatedUser.role,
           phno: updatedUser.phno,
           addresses: updatedUser.addresses,
+          referralCode: updatedUser.referralCode,
           token: generateToken(updatedUser._id)
         }
       });

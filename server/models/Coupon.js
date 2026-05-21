@@ -28,6 +28,10 @@ const couponSchema = new mongoose.Schema({
   minPurchase: {
     type: Number,
     default: 0
+  },
+  usageLimitPerUser: {
+    type: Number,
+    default: 1
   }
 }, {
   timestamps: true

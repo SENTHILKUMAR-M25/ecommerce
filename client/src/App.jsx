@@ -31,6 +31,7 @@ import CategoryManager from './pages/Admin/CategoryManager';
 import OrderManager from './pages/Admin/OrderManager';
 import UserManager from './pages/Admin/UserManager';
 import AuditLogs from './pages/Admin/AuditLogs';
+import CouponManager from './pages/Admin/CouponManager';
 
 function App() {
   return (
@@ -121,6 +122,11 @@ function App() {
               <Route path="/admin/orders" element={
                 <AdminLayout>
                   <OrderManager />
+                </AdminLayout>
+              } />
+              <Route path="/admin/coupons" element={
+                <AdminLayout>
+                  <CouponManager />
                 </AdminLayout>
               } />
               <Route path="/admin/users" element={

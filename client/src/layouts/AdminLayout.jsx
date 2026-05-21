@@ -13,7 +13,8 @@ import {
   Menu,
   X,
   Sun,
-  Moon
+  Moon,
+  Ticket
 } from 'lucide-react';
 import { logoutUser } from '../redux/slices/authSlice';
 import { useTheme } from '../context/ThemeContext';
@@ -37,6 +38,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Products', path: '/admin/products', icon: <ShoppingBag className="w-5 h-5" /> },
     { name: 'Categories', path: '/admin/categories', icon: <FolderTree className="w-5 h-5" /> },
     { name: 'Orders', path: '/admin/orders', icon: <ClipboardList className="w-5 h-5" /> },
+    { name: 'Coupons', path: '/admin/coupons', icon: <Ticket className="w-5 h-5" /> },
     { name: 'Customers', path: '/admin/users', icon: <Users className="w-5 h-5" /> },
     { name: 'Audit Logs', path: '/admin/logs', icon: <FileText className="w-5 h-5" /> }
   ];

@@ -162,12 +162,61 @@ export const updateAdminOrderStatus = createAsyncThunk(
   }
 );
 
+export const fetchAdminCoupons = createAsyncThunk(
+  'admin/fetchCoupons',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await API.get('/coupons');
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const addAdminCoupon = createAsyncThunk(
+  'admin/addCoupon',
+  async (couponData, { rejectWithValue }) => {
+    try {
+      const response = await API.post('/coupons', couponData);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const toggleCouponActiveState = createAsyncThunk(
+  'admin/toggleCouponActive',
+  async (couponId, { rejectWithValue }) => {
+    try {
+      const response = await API.put(`/coupons/${couponId}/toggle`);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const deleteAdminCoupon = createAsyncThunk(
+  'admin/deleteCoupon',
+  async (couponId, { rejectWithValue }) => {
+    try {
+      await API.delete(`/coupons/${couponId}`);
+      return couponId;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const initialState = {
   analytics: null,
   users: [],
   categories: [],
   orders: [],
   logs: [],
+  coupons: [],
   loading: false,
   actionLoading: false,
   error: null
@@ -236,6 +285,23 @@ const adminSlice = createSlice({
       .addCase(updateAdminOrderStatus.fulfilled, (state, action) => {
         state.actionLoading = false;
         state.orders = state.orders.map(o => o._id === action.payload._id ? action.payload : o);
+      })
+      // Coupon Management
+      .addCase(fetchAdminCoupons.fulfilled, (state, action) => {
+        state.loading = false;
+        state.coupons = action.payload;
+      })
+      .addCase(addAdminCoupon.fulfilled, (state, action) => {
+        state.actionLoading = false;
+        state.coupons.push(action.payload);
+      })
+      .addCase(toggleCouponActiveState.fulfilled, (state, action) => {
+        state.actionLoading = false;
+        state.coupons = state.coupons.map(c => c._id === action.payload._id ? action.payload : c);
+      })
+      .addCase(deleteAdminCoupon.fulfilled, (state, action) => {
+        state.actionLoading = false;
+        state.coupons = state.coupons.filter(c => c._id !== action.payload);
       })
       // Pending statuses
       .addMatcher(

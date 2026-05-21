@@ -1,6 +1,8 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import Coupon from '../models/Coupon.js';
+import User from '../models/User.js';
+import CouponUsage from '../models/CouponUsage.js';
 
 // @desc    Create a new order
 // @route   POST /api/orders
@@ -43,13 +45,96 @@ export const createOrder = async (req, res, next) => {
       await product.save();
     }
 
-    // 2. Validate Coupon if applied
-    let coupon = null;
+    // 2. Recalculate Prices on the Backend (Prevent API Manipulation)
+    const itemsPriceBackend = orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const shippingPriceBackend = itemsPriceBackend > 150 || itemsPriceBackend === 0 ? 0 : 15;
+    const taxPriceBackend = Math.round((itemsPriceBackend * 0.08) * 100) / 100;
+
+    let discountPriceBackend = 0;
+    let couponAppliedId = undefined;
+    let couponModel = 'Coupon';
+
     if (couponCode) {
-      coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+      const uppercaseCode = couponCode.trim().toUpperCase();
+
+      // Find standard coupon
+      let coupon = await Coupon.findOne({ code: uppercaseCode });
+
+      if (coupon) {
+        // Validate standard coupon
+        if (!coupon.isActive) {
+          res.status(400);
+          throw new Error('This coupon is no longer active');
+        }
+
+        if (new Date(coupon.expiryDate) < new Date()) {
+          res.status(400);
+          throw new Error('This coupon has expired');
+        }
+
+        const usageCount = await CouponUsage.countDocuments({
+          user: req.user._id,
+          coupon: coupon._id,
+          couponModel: 'Coupon'
+        });
+
+        if (usageCount >= coupon.usageLimitPerUser) {
+          res.status(400);
+          throw new Error('Coupon already used');
+        }
+
+        if (itemsPriceBackend < coupon.minPurchase) {
+          res.status(400);
+          throw new Error(`Minimum purchase of ₹${coupon.minPurchase} required to use this coupon`);
+        }
+
+        if (coupon.discountType === 'percentage') {
+          discountPriceBackend = Math.round(((coupon.discountValue / 100) * itemsPriceBackend) * 100) / 100;
+        } else {
+          discountPriceBackend = coupon.discountValue;
+        }
+        discountPriceBackend = Math.min(discountPriceBackend, itemsPriceBackend);
+        couponAppliedId = coupon._id;
+        couponModel = 'Coupon';
+      } else {
+        // Find referral code
+        const referrer = await User.findOne({ referralCode: uppercaseCode });
+        if (!referrer) {
+          res.status(404);
+          throw new Error('Invalid coupon or referral code');
+        }
+
+        if (referrer._id.toString() === req.user._id.toString()) {
+          res.status(400);
+          throw new Error('You cannot use your own referral code');
+        }
+
+        const usageCount = await CouponUsage.countDocuments({
+          user: req.user._id,
+          coupon: referrer._id,
+          couponModel: 'User'
+        });
+
+        if (usageCount > 0) {
+          res.status(400);
+          throw new Error('Referral code already used');
+        }
+
+        const referralMinPurchase = 250;
+        if (itemsPriceBackend < referralMinPurchase) {
+          res.status(400);
+          throw new Error(`Minimum purchase of ₹${referralMinPurchase} required to use referral code`);
+        }
+
+        discountPriceBackend = Math.min(100, itemsPriceBackend);
+        couponAppliedId = referrer._id;
+        couponModel = 'User';
+      }
     }
 
-    // 3. Create the order in database
+    const totalPriceBackend = Math.round((itemsPriceBackend + shippingPriceBackend + taxPriceBackend - discountPriceBackend) * 100) / 100;
+
+    // 3. Create the order in database using backend recalculated prices
     const order = await Order.create({
       user: req.user._id,
       orderItems,
@@ -58,13 +143,23 @@ export const createOrder = async (req, res, next) => {
       paymentInfo: paymentMethod === 'Card'
         ? { status: 'Succeeded', transactionId: paymentInfo?.transactionId || 'ch_mock_' + Math.random().toString(36).substr(2, 9) }
         : { status: 'Pending' },
-      itemsPrice,
-      taxPrice,
-      shippingPrice,
-      discountPrice,
-      totalPrice,
-      couponApplied: coupon ? coupon._id : undefined
+      itemsPrice: itemsPriceBackend,
+      taxPrice: taxPriceBackend,
+      shippingPrice: shippingPriceBackend,
+      discountPrice: discountPriceBackend,
+      totalPrice: totalPriceBackend,
+      couponApplied: couponModel === 'Coupon' ? couponAppliedId : undefined
     });
+
+    // 4. Record Coupon/Referral Usage
+    if (couponAppliedId) {
+      await CouponUsage.create({
+        user: req.user._id,
+        coupon: couponAppliedId,
+        couponModel,
+        order: order._id
+      });
+    }
 
     res.status(201).json({
       success: true,

@@ -37,9 +37,23 @@ const userSchema = new mongoose.Schema({
   phno: {
     type: String
   },
+  referralCode: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   addresses: [addressSchema]
 }, {
   timestamps: true
+});
+
+userSchema.pre('save', async function (next) {
+  if (!this.referralCode) {
+    const cleanName = this.name ? this.name.split(' ')[0].replace(/[^A-Za-z0-9]/g, '').toUpperCase() : 'USER';
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    this.referralCode = `AURA-${cleanName}-${randomNum}`;
+  }
+  next();
 });
 
 const User = mongoose.model('User', userSchema);
