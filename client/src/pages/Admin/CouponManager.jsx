@@ -180,7 +180,7 @@ const CouponManager = () => {
                       <td className="p-4">
                         <div className="flex items-center space-x-1.5 text-slate-500">
                           <Calendar className="w-3.5 h-3.5" />
-                          <span>{new Date(c.expiryDate).toLocaleDateString(undefined, { dateStyle: 'medium' })}</span>
+                          <span>{new Date(c.expiryDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>
                         </div>
                       </td>
                       <td className="p-4">
@@ -310,13 +310,13 @@ const CouponManager = () => {
 
                 {/* Expiry Date */}
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-450">Expiry Date *</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-450">Expiry Date & Time *</span>
                   <input
-                    type="date"
+                    type="datetime-local"
                     required
                     value={expiryDate}
                     onChange={(e) => setExpiryDate(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500 [color-scheme:dark]"
                   />
                 </div>
 

@@ -7,6 +7,7 @@ import { addToWishlist, removeFromWishlist } from '../../redux/slices/wishlistSl
 import { useToast } from '../../components/common/ToastContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ProductCard from '../../components/common/ProductCard';
+import CountdownTimer from '../../components/common/CountdownTimer';
 import { Star, ShoppingBag, Heart, Check, Plus, Minus, ArrowLeft, Send } from 'lucide-react';
 import API from '../../services/api';
 
@@ -24,6 +25,7 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [appliedOffer, setAppliedOffer] = useState(null);
   
   // Review form states
   const [rating, setRating] = useState(5);
@@ -53,10 +55,12 @@ const ProductDetails = () => {
       // Fetch related products & reviews
       const fetchExtra = async () => {
         try {
-          const [relatedRes, reviewsRes] = await Promise.all([
+          const [relatedRes, reviewsRes, offerRes] = await Promise.all([
             API.get(`/products?category=${product.category?._id}&limit=5`),
-            API.get(`/reviews/${product._id}`)
+            API.get(`/reviews/${product._id}`),
+            API.get(`/offers/product/${product._id}`)
           ]);
+          setAppliedOffer(offerRes.data.data);
           // Filter out current product from related list
           setRelatedProducts(relatedRes.data.data.filter(x => x._id !== product._id).slice(0, 4));
           setReviews(reviewsRes.data.data);
@@ -74,6 +78,12 @@ const ProductDetails = () => {
 
   const handleWishlistToggle = () => {
     if (!product) return;
+    const finalPrice = appliedOffer
+      ? appliedOffer.discountType === 'percentage'
+        ? product.price - (product.price * (appliedOffer.discountValue / 100))
+        : Math.max(0, product.price - appliedOffer.discountValue)
+      : product.price;
+
     if (isFavorited) {
       dispatch(removeFromWishlist(product._id));
       toast('Product removed from wishlist.', 'info');
@@ -81,7 +91,7 @@ const ProductDetails = () => {
       dispatch(addToWishlist({
         product: product._id,
         name: product.name,
-        price: product.price,
+        price: finalPrice,
         image: product.images[0],
         stock: product.stock,
         slug: product.slug
@@ -103,10 +113,16 @@ const ProductDetails = () => {
       .map(([name, opt]) => `${name}: ${opt}`)
       .join(', ');
 
+    const finalPrice = appliedOffer
+      ? appliedOffer.discountType === 'percentage'
+        ? product.price - (product.price * (appliedOffer.discountValue / 100))
+        : Math.max(0, product.price - appliedOffer.discountValue)
+      : product.price;
+
     dispatch(addToCart({
       product: product._id,
       name: product.name,
-      price: product.price,
+      price: finalPrice,
       image: product.images[0],
       quantity,
       stock: product.stock,
@@ -228,20 +244,47 @@ const ProductDetails = () => {
           </div>
 
           {/* Pricing tags */}
-          <div className="flex items-baseline space-x-3.5 border-y border-slate-100 dark:border-slate-800/80 py-4">
-            <span className="text-3xl font-extrabold text-cyan-600 dark:text-cyan-400">₹{product.price.toFixed(2)}</span>
-            {product.compareAtPrice && product.compareAtPrice > product.price && (
-              <span className="text-base text-slate-400 line-through">₹{product.compareAtPrice.toFixed(2)}</span>
+          <div className="flex flex-col gap-4 border-y border-slate-100 dark:border-slate-800/80 py-6">
+            <div className="flex items-baseline space-x-3.5">
+              <span className="text-4xl font-black text-cyan-600 dark:text-cyan-400">
+                ₹{appliedOffer 
+                  ? (appliedOffer.discountType === 'percentage' 
+                      ? (product.price - (product.price * (appliedOffer.discountValue / 100))).toFixed(2)
+                      : Math.max(0, product.price - appliedOffer.discountValue).toFixed(2))
+                  : product.price.toFixed(2)}
+              </span>
+              {(appliedOffer || (product.compareAtPrice && product.compareAtPrice > product.price)) && (
+                <span className="text-lg text-slate-400 line-through font-medium">₹{(product.compareAtPrice || product.price).toFixed(2)}</span>
+              )}
+              
+              {appliedOffer && (
+                <span className="bg-rose-500 text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase tracking-wider ml-2">
+                  {appliedOffer.discountType === 'percentage' ? `${appliedOffer.discountValue}%` : `₹${appliedOffer.discountValue}`} OFF
+                </span>
+              )}
+
+              {/* Stock availability indicators */}
+              <span className={`ml-auto text-xs font-bold px-3 py-1 rounded-full ${
+                product.stock > 0 
+                  ? 'bg-emerald-500/10 text-emerald-500' 
+                  : 'bg-rose-500/10 text-rose-500'
+              }`}>
+                {product.stock > 0 ? `In Stock` : 'Out of Stock'}
+              </span>
+            </div>
+
+            {appliedOffer && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/40 p-4 rounded-2xl border border-white/5 mt-2">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Active Offer</p>
+                  <p className="text-sm font-bold text-white">{appliedOffer.title}</p>
+                </div>
+                <div className="flex flex-col items-start sm:items-end gap-1">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Ending In</p>
+                  <CountdownTimer targetDate={appliedOffer.endDate} />
+                </div>
+              </div>
             )}
-            
-            {/* Stock availability indicators */}
-            <span className={`ml-auto text-xs font-bold px-3 py-1 rounded-full ${
-              product.stock > 0 
-                ? 'bg-emerald-500/10 text-emerald-500' 
-                : 'bg-rose-500/10 text-rose-500'
-            }`}>
-              {product.stock > 0 ? `In Stock (${product.stock} available)` : 'Temporarily Out of Stock'}
-            </span>
           </div>
 
           {/* Description */}

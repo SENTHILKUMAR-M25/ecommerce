@@ -1,6 +1,7 @@
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
 import AdminActivityLog from '../models/AdminActivityLog.js';
+import Offer from '../models/OfferSchema.js';
 
 // Helper slugifier
 const slugify = (text) => {
@@ -72,13 +73,37 @@ export const getProducts = async (req, res, next) => {
       .skip(skip)
       .limit(pageLimit);
 
+    // 7. Attach Active Offers
+    const now = new Date();
+    const activeOffers = await Offer.find({
+      isActive: true,
+      $or: [
+        { startDate: { $lte: now }, endDate: { $gte: now } },
+        { startDate: { $exists: false }, endDate: { $exists: false } },
+        { startDate: null, endDate: null }
+      ]
+    });
+
+    const productsWithOffers = products.map(product => {
+      const pObj = product.toObject();
+      const match = activeOffers
+        .filter(o => 
+          o.products.some(pId => pId.toString() === product._id.toString()) || 
+          (o.category && o.category === product.category?.name)
+        )
+        .sort((a, b) => b.discountValue - a.discountValue)[0]; // Best discount
+      
+      pObj.activeOffer = match || null;
+      return pObj;
+    });
+
     res.json({
       success: true,
       count: products.length,
       totalProducts,
       pages: Math.ceil(totalProducts / pageLimit),
       currentPage,
-      data: products
+      data: productsWithOffers
     });
   } catch (error) {
     next(error);
@@ -97,9 +122,27 @@ export const getProductBySlug = async (req, res, next) => {
       throw new Error('Product not found');
     }
 
+    // Attach best active offer
+    const now = new Date();
+    const activeOffer = await Offer.findOne({
+      isActive: true,
+      $or: [
+        { startDate: { $lte: now }, endDate: { $gte: now } },
+        { startDate: { $exists: false }, endDate: { $exists: false } },
+        { startDate: null, endDate: null }
+      ],
+      $or: [
+        { products: product._id },
+        { category: product.category?.name }
+      ]
+    }).sort({ discountValue: -1 });
+
+    const productObj = product.toObject();
+    productObj.activeOffer = activeOffer;
+
     res.json({
       success: true,
-      data: product
+      data: productObj
     });
   } catch (error) {
     next(error);

@@ -6,11 +6,11 @@ import API from '../../services/api';
 import SkeletonCard from '../../components/common/SkeletonCard';
 import ProductCard from '../../components/common/ProductCard';
 import { useToast } from '../../components/common/ToastContext';
+import OfferBanner from '../../components/OfferBanner';
 
 const CouponCard = ({ coupon }) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-
   const handleCopy = () => {
     navigator.clipboard.writeText(coupon.code);
     setCopied(true);
@@ -24,7 +24,7 @@ const CouponCard = ({ coupon }) => {
     day: 'numeric',
     year: 'numeric'
   });
-
+ 
   return (
     <div className="relative overflow-hidden glass-panel border border-white/10 dark:border-white/5 bg-slate-950/70 p-6 rounded-3xl flex flex-col justify-between h-48 shadow-lg group hover:border-cyan-500/30 transition-all duration-300">
       {/* Decorative semi-circles on sides to simulate a real ticket */}
@@ -393,7 +393,6 @@ const Home = () => {
           </div>
         )}
       </section>
-
       {/* 6. GLOWING TESTIMONIALS */}
       <section className="space-y-8">
         <div className="text-center max-w-xl mx-auto space-y-2">

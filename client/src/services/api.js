@@ -77,6 +77,9 @@ API.interceptors.response.use(
 
     return Promise.reject(message);
   }
+  
 );
-
+export const getActiveOffers = async () => {
+  return await API.get("/offers/active");
+};
 export default API;

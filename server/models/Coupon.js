@@ -32,7 +32,10 @@ const couponSchema = new mongoose.Schema({
   usageLimitPerUser: {
     type: Number,
     default: 1
-  }
+  },
+    bannerImage: {
+      type: String, // for homepage banner
+    },
 }, {
   timestamps: true
 });

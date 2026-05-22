@@ -12,6 +12,7 @@ import {
   X, 
   LogOut, 
   Grid, 
+  Tag,
   LayoutDashboard,
   MapPin,
   History
@@ -93,6 +94,13 @@ const Navbar = () => {
               className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors"
             >
               Shop
+            </Link>
+            <Link 
+              to="/offers" 
+              className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-cyan-500 dark:hover:text-cyan-400 flex items-center gap-1 transition-colors"
+            >
+              <Tag className="w-3.5 h-3.5" />
+              <span>Offers</span>
             </Link>
 
             {/* Dark Mode Switcher */}
@@ -246,6 +254,15 @@ const Navbar = () => {
               className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 rounded-xl hover:bg-cyan-50 dark:hover:bg-slate-900"
             >
               Shop Products
+            </Link>
+
+            <Link
+              to="/offers"
+              onClick={() => setIsOpen(false)}
+              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 rounded-xl hover:bg-cyan-50 dark:hover:bg-slate-900 flex items-center gap-2"
+            >
+              <Tag className="w-4 h-4 text-cyan-500" />
+              <span>Special Offers</span>
             </Link>
 
             <Link

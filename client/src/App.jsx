@@ -23,6 +23,7 @@ import ProfilePage from './pages/User/ProfilePage';
 import OrdersHistory from './pages/User/OrdersHistory';
 import LoginPage from './pages/User/LoginPage';
 import RegisterPage from './pages/User/RegisterPage';
+import OffersProductPage from './pages/User/OffersProductPage';
 
 // Admin Pages
 import Dashboard from './pages/Admin/Dashboard';
@@ -32,6 +33,7 @@ import OrderManager from './pages/Admin/OrderManager';
 import UserManager from './pages/Admin/UserManager';
 import AuditLogs from './pages/Admin/AuditLogs';
 import CouponManager from './pages/Admin/CouponManager';
+import OffersPage from './pages/Admin/OfferPage';
 
 function App() {
   return (
@@ -50,6 +52,16 @@ function App() {
             <Route path="/products" element={
               <MainLayout>
                 <ProductListings />
+              </MainLayout>
+            } />
+            <Route path="/offers" element={
+              <MainLayout>
+                <OffersProductPage />
+              </MainLayout>
+            } />
+            <Route path="/offers/:slug" element={
+              <MainLayout>
+                <OffersProductPage />
               </MainLayout>
             } />
             <Route path="/product/:slug" element={
@@ -127,6 +139,11 @@ function App() {
               <Route path="/admin/coupons" element={
                 <AdminLayout>
                   <CouponManager />
+                </AdminLayout>
+              } />
+              <Route path="/admin/offers" element={
+                <AdminLayout>
+                  <OffersPage />
                 </AdminLayout>
               } />
               <Route path="/admin/users" element={

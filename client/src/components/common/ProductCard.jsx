@@ -6,10 +6,27 @@ import { addToCart } from '../../redux/slices/cartSlice';
 import { addToWishlist, removeFromWishlist } from '../../redux/slices/wishlistSlice';
 import { useToast } from './ToastContext';
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, offer }) => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const { wishlistItems } = useSelector((state) => state.wishlist);
+
+  // Calculate Offer Price if offer is provided
+  // Priority: 1. Manual prop, 2. Backend provided activeOffer
+  const currentOffer = offer || product.activeOffer;
+  let displayPrice = product.price;
+  let originalPrice = product.compareAtPrice || product.price;
+  let discountBadge = null;
+
+  if (currentOffer) {
+    if (currentOffer.discountType === 'percentage') {
+      displayPrice = product.price - (product.price * (currentOffer.discountValue / 100));
+      discountBadge = `${currentOffer.discountValue}% OFF`;
+    } else {
+      displayPrice = Math.max(0, product.price - currentOffer.discountValue);
+      discountBadge = `₹${currentOffer.discountValue} OFF`;
+    }
+  }
 
   const isFavorited = wishlistItems.some((item) => item.product === product._id);
 
@@ -25,7 +42,7 @@ const ProductCard = ({ product }) => {
         addToWishlist({
           product: product._id,
           name: product.name,
-          price: product.price,
+          price: displayPrice,
           image: product.images[0],
           stock: product.stock,
           slug: product.slug,
@@ -60,7 +77,7 @@ const ProductCard = ({ product }) => {
       addToCart({
         product: product._id,
         name: product.name,
-        price: product.price,
+        price: displayPrice,
         image: product.images[0],
         quantity: 1,
         stock: product.stock,
@@ -82,9 +99,9 @@ const ProductCard = ({ product }) => {
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 animate-fadeIn"
             />
           </Link>
-          {product.compareAtPrice && product.compareAtPrice > product.price && (
+          {(discountBadge || (product.compareAtPrice && product.compareAtPrice > product.price)) && (
             <span className="absolute top-3.5 left-3.5 bg-rose-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider z-10">
-              Sale
+              {discountBadge || 'Sale'}
             </span>
           )}
           <button
@@ -118,9 +135,9 @@ const ProductCard = ({ product }) => {
       </div>
       <div className="px-2 pt-3 flex justify-between items-center gap-2">
         <div className="flex items-baseline space-x-1.5">
-          <span className="text-xl font-extrabold text-cyan-600 dark:text-cyan-400">₹{product.price}</span>
-          {product.compareAtPrice && product.compareAtPrice > product.price && (
-            <span className="text-sm text-slate-400 line-through">₹{product.compareAtPrice}</span>
+          <span className="text-xl font-extrabold text-cyan-600 dark:text-cyan-400">₹{Math.round(displayPrice)}</span>
+          {(discountBadge || (product.compareAtPrice && product.compareAtPrice > product.price)) && (
+            <span className="text-sm text-slate-400 line-through">₹{originalPrice}</span>
           )}
         </div>
         <button
