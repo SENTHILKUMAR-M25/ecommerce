@@ -147,8 +147,16 @@ const CategoryManager = () => {
               className="glass-panel border border-white/10 rounded-3xl overflow-hidden p-3 shadow-md flex flex-col justify-between h-80"
             >
               <div>
-                <div className="relative aspect-video w-full rounded-2xl overflow-hidden mb-3">
-                  <img src={c.image} alt={c.name} className="w-full h-full object-cover" />
+                <div className="relative aspect-video w-full rounded-2xl overflow-hidden mb-3 bg-slate-100 dark:bg-slate-800">
+                  <img
+                    src={c.image}
+                    alt={c.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=300&q=80';
+                    }}
+                  />
                 </div>
                 <div className="px-1.5 space-y-1">
                   <h3 className="font-bold text-base truncate">{c.name}</h3>
@@ -232,6 +240,17 @@ const CategoryManager = () => {
                     onChange={(e) => setImage(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500 text-xs text-slate-500"
                   />
+                  {/* Live Image Preview */}
+                  {image && (
+                    <div className="mt-2 w-full aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
+                      <img
+                        src={image}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Description */}

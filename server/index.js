@@ -38,7 +38,9 @@ app.use((req, res, next) => {
 
 // Speed & Security Middleware
 app.use(helmet({
-    crossOriginResourcePolicy: false, // Required for displaying local images
+    crossOriginResourcePolicy: false,
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false, // Allows images from any origin in dev
 }));
 app.use(compression());
 
