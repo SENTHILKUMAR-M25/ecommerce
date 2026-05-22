@@ -4,6 +4,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 import { rateLimit } from 'express-rate-limit';
 import path from 'path';
+import compression from 'compression';
+import helmet from 'helmet';
 
 import { connectDB } from './config/db.js';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
@@ -34,6 +36,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Speed & Security Middleware
+app.use(helmet({
+    crossOriginResourcePolicy: false, // Required for displaying local images
+}));
+app.use(compression());
+
 // Body Parser Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -43,7 +51,7 @@ app.use(
   cors({
     origin:[
       // "http://localhost:5173",
-     "https://ecommerce-eight-virid-50.vercel.app",
+      "https://ecommerce-eight-virid-50.vercel.app",
     
   ],
   credentials: true,

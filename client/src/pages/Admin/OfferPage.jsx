@@ -246,7 +246,7 @@ const OffersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070B14] text-white overflow-hidden relative">
+    <div className="min-h-screen text-white overflow-hidden relative">
       {/* Background Glow */}
       <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-cyan-500/20 blur-[140px] rounded-full" />
 

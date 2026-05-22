@@ -4,8 +4,7 @@ const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [darkTheme, setDarkTheme] = useState(() => {
-    return localStorage.getItem('aura_theme') === 'dark' ||
-      (!('aura_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    return localStorage.getItem('aura_theme') === 'dark';
   });
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import SkeletonCard from '../../components/common/SkeletonCard';
 import ProductCard from '../../components/common/ProductCard';
 import { useToast } from '../../components/common/ToastContext';
 import OfferBanner from '../../components/OfferBanner';
+import SEO from '../../components/common/SEO';
 
 const CouponCard = ({ coupon }) => {
   const { toast } = useToast();
@@ -159,6 +160,11 @@ const Home = () => {
 
   return (
     <div className="space-y-20 pb-16">
+      <SEO 
+        title="Exclusive Premium Essentials" 
+        description="Discover state-of-the-art tech gadgets, structured fashion, and ambient home styling crafted for premium minds. Experience the Aura of luxury shopping."
+        keywords="luxury shopping, tech gadgets, premium fashion, home decor, electronics, Aura store"
+      />
       {/* 1. HERO BANNER with Background Image Carousel */}
       <section className="relative rounded-3xl overflow-hidden shadow-2xl  flex items-center">
 
