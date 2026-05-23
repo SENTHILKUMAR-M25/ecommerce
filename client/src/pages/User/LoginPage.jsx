@@ -3,11 +3,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { loginUser, clearError } from '../../redux/slices/authSlice';
 import { useToast } from '../../components/common/ToastContext';
-import { Mail, Lock, LogIn, ArrowRight, UserCheck, ShieldAlert } from 'lucide-react';
+import { Mail, Lock, LogIn, ArrowRight, UserCheck, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -101,14 +102,21 @@ const LoginPage = () => {
               <span className="text-[10px] uppercase font-bold text-slate-455">Password</span>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-202 dark:border-slate-805 bg-white/40 dark:bg-slate-900/40 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-202 dark:border-slate-805 bg-white/40 dark:bg-slate-900/40 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500"
                 />
                 <Lock className="absolute left-3.5 top-3 w-4.5 h-4.5 text-slate-400" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                </button>
               </div>
             </div>
 

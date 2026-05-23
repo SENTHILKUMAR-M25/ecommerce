@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { registerUser, clearError } from '../../redux/slices/authSlice';
 import { useToast } from '../../components/common/ToastContext';
-import { User, Mail, Lock, ArrowRight, UserPlus, Phone, MapPin } from 'lucide-react';
+import { User, Mail, Lock, ArrowRight, UserPlus, Phone, MapPin, Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage = () => {
   // Registration form states
@@ -17,6 +17,8 @@ const RegisterPage = () => {
   const [country, setCountry] = useState('United States');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -215,14 +217,21 @@ const RegisterPage = () => {
                 <span className="text-[10px] uppercase font-bold text-slate-455">Choose Password</span>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-805 bg-white/40 dark:bg-slate-900/40 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                    className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-805 bg-white/40 dark:bg-slate-900/40 focus:outline-none focus:ring-1 focus:ring-cyan-500"
                   />
                   <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -231,14 +240,21 @@ const RegisterPage = () => {
                 <span className="text-[10px] uppercase font-bold text-slate-455">Confirm Password</span>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     required
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-805 bg-white/40 dark:bg-slate-900/40 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                    className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-805 bg-white/40 dark:bg-slate-900/40 focus:outline-none focus:ring-1 focus:ring-cyan-500"
                   />
                   <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
             </div>

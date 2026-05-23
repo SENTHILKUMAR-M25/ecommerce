@@ -52,7 +52,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: [
-      "https://ecommerce-eight-virid-50.vercel.app",
+      "http://localhost:5173",
       // "https://ecommerce-eight-virid-50.vercel.app",
 
     ],
