@@ -43,14 +43,23 @@ const ProductDetails = () => {
   // Set default main image & variants once product details resolve
   useEffect(() => {
     if (product) {
-      setActiveImage(product.images[0]);
-      
       // Auto-set first option for each variant
       const defaultVars = {};
+      let initialColorImage = product.images[0];
+
       product.variants.forEach((v) => {
         defaultVars[v.name] = v.options[0];
+        // If this is a color variant and has a mapping, use it for initial active image
+        if (v.name.toLowerCase() === 'color' && product.colorImages?.length > 0) {
+          const mapping = product.colorImages.find(m => m.color === v.options[0]);
+          if (mapping && mapping.image) {
+            initialColorImage = mapping.image;
+          }
+        }
       });
+      
       setSelectedVariants(defaultVars);
+      setActiveImage(initialColorImage);
       setQuantity(1);
 
       // Fetch related products & reviews
@@ -74,7 +83,19 @@ const ProductDetails = () => {
   }, [product]);
 
   const handleVariantSelect = (variantName, optionValue) => {
-    setSelectedVariants((prev) => ({ ...prev, [variantName]: optionValue }));
+    setSelectedVariants((prev) => {
+      const newVars = { ...prev, [variantName]: optionValue };
+      
+      // If we just selected a color, check if there's a mapped image for it
+      if (variantName.toLowerCase() === 'color' && product.colorImages?.length > 0) {
+        const mapping = product.colorImages.find(m => m.color === optionValue);
+        if (mapping && mapping.image) {
+          setActiveImage(mapping.image);
+        }
+      }
+      
+      return newVars;
+    });
   };
 
   const handleWishlistToggle = () => {
@@ -368,115 +389,216 @@ const ProductDetails = () => {
         </div>
       </div>
 
-      {/* Customer Reviews Section */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-12 border-t border-slate-100 dark:border-slate-800/80 pt-12">
-        {/* Left Side: Rating summary */}
-        <div className="space-y-6">
+      {/* ── CUSTOMER FEEDBACK & REVIEWS ── */}
+      <section className="border-t border-slate-100 dark:border-slate-800/80 pt-16">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
           <div>
-            <h2 className="text-2xl font-extrabold tracking-tight">Verified Feedback</h2>
-            <p className="text-slate-500 text-sm mt-1">Read reviews left by genuine verified purchasers.</p>
+            <h2 className="text-3xl font-extrabold tracking-tight">Customer Feedback</h2>
+            <p className="text-slate-500 text-sm mt-1">Authentic experiences from verified community members.</p>
           </div>
-
-          <div className="glass-panel p-6 rounded-3xl border border-white/10 text-center space-y-2">
-            <h3 className="text-5xl font-black gradient-text">{product.ratings}</h3>
-            <div className="flex justify-center text-amber-400">
-              {Array(5).fill(0).map((_, i) => (
-                <Star 
-                  key={i} 
-                  className={`w-5 h-5 ${
-                    i < Math.round(product.ratings) ? 'fill-amber-400' : 'text-slate-200 dark:text-slate-700'
-                  }`} 
-                />
-              ))}
-            </div>
-            <p className="text-xs text-slate-450 uppercase tracking-wider font-bold pt-1">
-              Average out of {reviews.length} reviews
-            </p>
+          <div className="flex items-center gap-2 text-sm font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-full">
+            <Check className="w-4 h-4 text-emerald-500" />
+            <span>100% Verified Community</span>
           </div>
-
-          {/* Submit review Form */}
-          {user ? (
-            <form onSubmit={handleReviewSubmit} className="glass-panel p-6 rounded-3xl border border-white/10 space-y-4">
-              <h4 className="font-bold text-sm tracking-wider uppercase text-slate-400">Submit Your Review</h4>
-              
-              {/* Rating selection stars */}
-              <div className="space-y-1">
-                <span className="text-xs text-slate-450">Stars Score</span>
-                <div className="flex gap-1.5 text-amber-400 pt-0.5">
-                  {[1, 2, 3, 4, 5].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setRating(num)}
-                      className="hover:scale-110 transition-transform"
-                    >
-                      <Star className={`w-6 h-6 ${num <= rating ? 'fill-amber-400' : 'text-slate-250 dark:text-slate-700'}`} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-xs text-slate-450">Review Comment</span>
-                <textarea
-                  placeholder="Share your experience details..."
-                  rows={3}
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-805 bg-white/40 dark:bg-slate-900/40 p-3 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500"
-                ></textarea>
-              </div>
-
-              <button
-                type="submit"
-                disabled={reviewSubmitLoading}
-                className="w-full flex items-center justify-center space-x-2 py-2.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold hover:bg-cyan-500 dark:hover:bg-cyan-400 hover:text-white transition-all disabled:opacity-55"
-              >
-                <Send className="w-3.5 h-3.5" />
-                <span>Publish Review</span>
-              </button>
-            </form>
-          ) : (
-            <div className="glass-panel p-6 rounded-3xl border border-white/10 text-center space-y-3.5">
-              <p className="text-xs text-slate-450 font-medium">Have you purchased this product?</p>
-              <Link
-                to="/login"
-                className="inline-block px-6 py-2 border border-slate-200 dark:border-slate-800 rounded-full font-bold text-xs hover:border-cyan-500"
-              >
-                Log In to Review
-              </Link>
-            </div>
-          )}
         </div>
 
-        {/* Right Side: Reviews list */}
-        <div className="lg:col-span-2 space-y-6 max-h-[500px] overflow-y-auto pr-2">
-          {reviews.length === 0 ? (
-            <div className="py-12 glass-panel border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-center text-slate-400 text-sm">
-              No product reviews have been posted yet. Be the first to review!
-            </div>
-          ) : (
-            reviews.map((rev) => (
-              <div key={rev._id} className="glass-panel p-6 rounded-3xl border border-white/10 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-bold text-sm">{rev.name}</h4>
-                    <span className="text-[10px] text-slate-450">
-                      {new Date(rev.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
-                    </span>
-                  </div>
-                  <div className="flex text-amber-400">
-                    {Array(5).fill(0).map((_, i) => (
-                      <Star key={i} className={`w-3.5 h-3.5 ${i < rev.rating ? 'fill-amber-400' : 'text-slate-250 dark:text-slate-700'}`} />
-                    ))}
-                  </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Left Column: Summary & Form (4 cols) */}
+          <div className="lg:col-span-4 space-y-8">
+            {/* Rating Summary Card */}
+            <div className="glass-panel p-8 rounded-[2rem] border border-white/10 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-colors" />
+              
+              <div className="relative space-y-4 text-center">
+                <div className="inline-flex items-end gap-1">
+                  <h3 className="text-6xl font-black gradient-text tracking-tighter">{product.ratings || 0}</h3>
+                  <span className="text-slate-400 font-bold mb-2">/ 5</span>
                 </div>
-                <p className="text-sm text-slate-650 dark:text-slate-350 leading-relaxed">
-                  {rev.comment}
-                </p>
+                
+                <div className="flex justify-center gap-1.5 text-amber-400">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star 
+                      key={s} 
+                      className={`w-6 h-6 ${s <= Math.round(product.ratings) ? 'fill-amber-400' : 'text-slate-200 dark:text-slate-800'}`} 
+                    />
+                  ))}
+                </div>
+                
+                <div className="pt-2">
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Based on {reviews.length} total reviews</p>
+                  <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">94% Recommend this item</p>
+                </div>
               </div>
-            ))
-          )}
+
+              {/* Stars Distribution Bar */}
+              <div className="mt-8 space-y-3">
+                {[5, 4, 3, 2, 1].map((s) => {
+                  const count = reviews.filter(r => Math.round(r.rating) === s).length;
+                  const percent = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                  return (
+                    <div key={s} className="flex items-center gap-3">
+                      <span className="text-xs font-bold w-3 text-slate-400">{s}</span>
+                      <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full transition-all duration-1000 ${
+                            s >= 4 ? 'bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]' : s === 3 ? 'bg-amber-400' : 'bg-slate-400'
+                          }`}
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-bold w-8 text-right text-slate-450">{Math.round(percent)}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Submission Form Component */}
+            <div className="glass-panel p-8 rounded-[2rem] border border-white/10 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                  <Plus className="w-5 h-5 text-cyan-500" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">Write a Review</h4>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Join the discussion</p>
+                </div>
+              </div>
+
+              {user ? (
+                <form onSubmit={handleReviewSubmit} className="space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 ml-1">Rating Score</label>
+                    <div className="flex gap-2.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
+                      {[1, 2, 3, 4, 5].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onMouseEnter={() => setRating(num)}
+                          onClick={() => setRating(num)}
+                          className={`group transition-all duration-300 ${num <= rating ? 'scale-110' : 'scale-90 opacity-40'}`}
+                        >
+                          <Star 
+                            className={`w-7 h-7 transition-all ${
+                              num <= rating ? 'fill-amber-400 text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.4)]' : 'text-slate-400'
+                            }`} 
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 ml-1">Your Feedback</label>
+                    <textarea
+                      required
+                      placeholder="What did you like or dislike about this product? Your honest feedback helps others make better choices."
+                      rows={4}
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all placeholder:text-slate-400"
+                    ></textarea>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={reviewSubmitLoading}
+                    className="w-full flex items-center justify-center space-x-3 py-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {reviewSubmitLoading ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Submit Private Review</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              ) : (
+                <div className="py-8 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto">
+                    <Heart className="w-8 h-8 text-slate-300" />
+                  </div>
+                  <div className="space-y-1">
+                    <h5 className="font-bold text-sm">Sign in to Review</h5>
+                    <p className="text-xs text-slate-450 px-4">You must be logged in to leave a verified purchase review.</p>
+                  </div>
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 active:scale-95 transition-all"
+                  >
+                    Secure Login
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Reviews List (8 cols) */}
+          <div className="lg:col-span-8 space-y-6">
+            {reviews.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 glass-panel border border-dashed border-slate-200 dark:border-slate-800 rounded-[3rem] text-center space-y-4 bg-slate-50/50 dark:bg-slate-900/20">
+                <div className="w-20 h-20 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center shadow-xl">
+                  <Star className="w-10 h-10 text-slate-200" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-bold text-lg">No reviews yet</h3>
+                  <p className="text-slate-400 text-sm max-w-xs mx-auto">Be the first to share your thoughts on this product and help the community!</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-5 max-h-[1000px] overflow-y-auto pr-4 scrollbar-hide">
+                {reviews.map((rev, idx) => (
+                  <div 
+                    key={rev._id} 
+                    className="glass-panel p-8 rounded-[2.5rem] border border-white/10 space-y-5 group hover:border-cyan-500/30 transition-all duration-500 animate-fadeIn"
+                    style={{ animationDelay: `${idx * 100}ms` }}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        {/* Avatar */}
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center text-slate-500 dark:text-slate-400 font-extrabold shadow-sm border border-white/5 uppercase">
+                          {rev.name?.charAt(0) || 'U'}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">{rev.name}</h4>
+                            <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                              <Check className="w-2.5 h-2.5" />
+                              Verified
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-medium">
+                            Reviewed on {new Date(rev.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Score Badge */}
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-400/10 border border-amber-400/20">
+                        <span className="text-sm font-black text-amber-500">{rev.rating.toFixed(1)}</span>
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      </div>
+                    </div>
+
+                    <div className="relative pl-0 sm:pl-16">
+                      {/* Decorative quote mark */}
+                      <svg className="absolute top-0 left-0 -mt-2 ml-4 w-10 h-10 text-slate-100 dark:text-slate-800/50 -z-10" fill="currentColor" viewBox="0 0 32 32">
+                        <path d="M10 8v8l-4 8H2l4-8V8h4zm12 0v8l-4 8h-4l4-8V8h4z" />
+                      </svg>
+                      
+                      <p className="text-sm sm:text-base text-slate-650 dark:text-slate-350 leading-relaxed font-medium italic">
+                        "{rev.comment}"
+                      </p>
+                    </div>
+
+                   
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

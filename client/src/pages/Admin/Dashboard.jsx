@@ -52,16 +52,16 @@ const Dashboard = () => {
       </div>
 
       {/* 3. CORE STATISTICS CARDS */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
         {stats.map((s, idx) => (
-          <div key={idx} className="glass-panel p-6 rounded-3xl border border-white/10 shadow-lg flex items-center justify-between">
+          <div key={idx} className="glass-panel p-6 rounded-3xl border border-white/10 shadow-lg flex items-center justify-between hover:border-cyan-500/20 transition-all duration-300">
             <div className="space-y-1.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-455">{s.title}</span>
-              <p className="text-3xl font-black">{s.value}</p>
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-455">{s.title}</span>
+              <p className="text-2xl sm:text-3xl font-black">{s.value}</p>
               <p className="text-[10px] text-slate-400">{s.desc}</p>
             </div>
             <div className={`p-4 rounded-2xl ${s.bg}`}>
-              {s.icon}
+              {React.cloneElement(s.icon, { className: 'w-5 h-5 sm:w-6 sm:h-6' })}
             </div>
           </div>
         ))}
@@ -69,26 +69,27 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Animated Area Sales Line Chart using pure native SVG */}
-        <section className="lg:col-span-2 glass-panel p-6 rounded-3xl border border-white/10 shadow-lg space-y-6 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-sm tracking-wider uppercase text-slate-400 flex items-center gap-1.5">
+        <section className="lg:col-span-2 glass-panel p-6 sm:p-8 rounded-[2.5rem] border border-white/10 shadow-lg space-y-6">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-bold text-xs sm:text-sm tracking-wider uppercase text-slate-400 flex items-center gap-1.5">
               <TrendingUp className="w-4.5 h-4.5 text-cyan-500" />
-              <span>Revenue Trend (Trailing 6 Months)</span>
+              <span>Revenue Trend</span>
             </h3>
+            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full uppercase">Last 6 Months</span>
           </div>
 
           {trend.length === 0 ? (
-            <div className="h-48 flex items-center justify-center text-slate-400 text-sm">
-              Insufficient transactional sales logs to plot chart coordinates.
+            <div className="h-48 flex items-center justify-center text-slate-400 text-sm border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
+              Insufficient sales data to plot chart.
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Responsive SVG Chart */}
-              <div className="w-full h-56">
-                <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-full overflow-visible">
+              <div className="w-full h-[200px] sm:h-[300px]">
+                <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-full overflow-visible" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.25" />
+                      <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.15" />
                       <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
                     </linearGradient>
                   </defs>
@@ -100,8 +101,10 @@ const Dashboard = () => {
                   <polyline
                     fill="none"
                     stroke="url(#lineGradient)"
-                    strokeWidth="3.5"
+                    strokeWidth="4"
                     points={pointsStr}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
 
                   {/* Gradient for Line */}
@@ -117,14 +120,13 @@ const Dashboard = () => {
                     const x = idx * xStep;
                     const y = chartHeight - (t.sales / maxSales) * (chartHeight - 40) - 20;
                     return (
-                      <g key={idx} className="group">
+                      <g key={idx}>
                         <circle
                           cx={x}
                           cy={y}
-                          r="5"
-                          className="fill-cyan-500 stroke-white dark:stroke-slate-950 stroke-2 hover:r-7 transition-all cursor-pointer"
+                          r="6"
+                          className="fill-white dark:fill-slate-100 stroke-cyan-500 stroke-2 hover:r-8 transition-all cursor-pointer shadow-xl"
                         />
-                        {/* Hover Tooltip box */}
                         <title>{`${t.month}: ₹${t.sales}`}</title>
                       </g>
                     );
@@ -133,7 +135,7 @@ const Dashboard = () => {
               </div>
 
               {/* X Axis Labels */}
-              <div className="flex justify-between text-[10px] text-slate-400 px-1 font-bold uppercase tracking-wider">
+              <div className="flex justify-between text-[10px] text-slate-450 px-0.5 font-black uppercase tracking-widest border-t border-slate-100 dark:border-slate-800 pt-4">
                 {trend.map((t, idx) => <span key={idx}>{t.month}</span>)}
               </div>
             </div>
@@ -141,32 +143,34 @@ const Dashboard = () => {
         </section>
 
         {/* Best Sellers Leaderboard */}
-        <section className="glass-panel p-6 rounded-3xl border border-white/10 shadow-lg space-y-6">
+        <section className="glass-panel p-6 sm:p-8 rounded-[2.5rem] border border-white/10 shadow-lg space-y-6">
           <h3 className="font-bold text-sm tracking-wider uppercase text-slate-400 flex items-center gap-1.5">
             <ShoppingBag className="w-4.5 h-4.5 text-indigo-500" />
-            <span>Best-Selling Rankings</span>
+            <span>Top Rankings</span>
           </h3>
 
-          <div className="space-y-4 max-h-64 overflow-y-auto pr-1">
+          <div className="space-y-5 max-h-[400px] lg:max-h-none overflow-y-auto pr-1 scrollbar-hide">
             {analytics.bestSellers.length === 0 ? (
-              <div className="py-12 border border-dashed border-slate-205 dark:border-slate-805 rounded-2xl text-center text-slate-400 text-xs">
-                No catalog item sales tracked yet.
+              <div className="py-12 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-center text-slate-400 text-xs">
+                No rankings available yet.
               </div>
             ) : (
               analytics.bestSellers.map((item, idx) => (
-                <div key={item._id} className="flex justify-between items-center gap-3 text-xs pb-3 border-b border-slate-100 dark:border-slate-85 last:border-0 last:pb-0">
-                  <div className="flex gap-2.5 items-center min-w-0">
-                    <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-black flex items-center justify-center flex-shrink-0">
-                      #{idx + 1}
+                <div key={item._id} className="flex justify-between items-center gap-4 text-xs pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 group">
+                  <div className="flex gap-3 items-center min-w-0">
+                    <span className="w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-900 text-[10px] font-black flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-500 group-hover:text-white transition-colors">
+                      {idx + 1}
                     </span>
                     <div className="min-w-0">
-                      <p className="font-bold truncate">{item.name}</p>
-                      <p className="text-[10px] text-slate-400">Total Revenue: ₹{item.revenue.toFixed(2)}</p>
+                      <p className="font-bold truncate text-slate-800 dark:text-slate-100">{item.name}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">Revenue: ₹{item.revenue.toLocaleString()}</p>
                     </div>
                   </div>
-                  <span className="font-extrabold text-cyan-650 dark:text-cyan-400 whitespace-nowrap bg-cyan-500/5 dark:bg-cyan-500/10 px-2.5 py-1 rounded-full">
-                    {item.totalSold} sold
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <span className="font-extrabold text-cyan-600 dark:text-cyan-400 whitespace-nowrap bg-cyan-500/10 px-3 py-1 rounded-full text-[10px]">
+                      {item.totalSold} Units
+                    </span>
+                  </div>
                 </div>
               ))
             )}

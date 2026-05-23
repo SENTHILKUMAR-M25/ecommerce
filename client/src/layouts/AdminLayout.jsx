@@ -163,20 +163,29 @@ const AdminLayout = ({ children }) => {
       {/* Main Administrative Page View */}
       <div className="flex-1 flex flex-col lg:pl-64 min-h-screen">
         {/* Top bar - Mobile header */}
-        <header className="lg:hidden glass-panel border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 h-16 flex items-center justify-between px-6 sticky top-0 z-30 backdrop-blur-md">
+        <header className="lg:hidden glass-panel border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 h-16 flex items-center justify-between px-6 sticky top-0 z-30 backdrop-blur-md">
           <div className="flex items-center space-x-4">
-            <button onClick={() => setSidebarOpen(true)} className="text-slate-600 dark:text-slate-300">
+            <button 
+              onClick={() => setSidebarOpen(true)} 
+              className="p-2 -ml-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Open Menu"
+            >
               <Menu className="w-6 h-6" />
             </button>
-            <span className="text-xl font-bold tracking-wider gradient-text font-sans">AURA</span>
+            <div className="flex items-center space-x-2">
+              <span className="text-xl font-black tracking-wider gradient-text font-sans">AURA</span>
+              <span className="hidden sm:inline-block text-[9px] uppercase tracking-widest bg-cyan-500/10 text-cyan-500 px-2 py-0.5 rounded-full font-bold">Admin</span>
+            </div>
           </div>
 
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
-          >
-            {darkTheme ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+            >
+              {darkTheme ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5" />}
+            </button>
+          </div>
         </header>
 
         {/* Content Portal */}

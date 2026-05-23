@@ -139,77 +139,102 @@ const CouponManager = () => {
       {loading ? (
         <LoadingSpinner />
       ) : coupons.length === 0 ? (
-        <div className="py-12 glass-panel border border-dashed border-slate-205 dark:border-slate-805 rounded-[2rem] text-center text-slate-400 text-sm">
+        <div className="py-12 glass-panel border border-dashed border-slate-200 dark:border-slate-800 rounded-[2rem] text-center text-slate-400 text-sm">
           No coupons exist. Click "Create Coupon" to initialize discounts.
         </div>
       ) : (
-        <div className="glass-panel border border-white/10 rounded-[2rem] overflow-hidden shadow-lg">
+        <div className="glass-panel border border-white/10 rounded-[2rem] overflow-hidden shadow-lg p-0 sm:p-6 bg-white/50 dark:bg-slate-900/40 backdrop-blur-md">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-100/50 dark:bg-slate-900/40 text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-85">
-                  <th className="p-4 font-bold">Code</th>
-                  <th className="p-4 font-bold">Discount</th>
-                  <th className="p-4 font-bold">Min Purchase</th>
-                  <th className="p-4 font-bold">Limit per User</th>
-                  <th className="p-4 font-bold">Expiry Date</th>
-                  <th className="p-4 font-bold">Status</th>
-                  <th className="p-4 font-bold text-center">Actions</th>
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="hidden sm:table-header-group">
+                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 uppercase tracking-wider font-bold">
+                  <th className="py-4 px-4">Code</th>
+                  <th className="py-4 px-4">Discount</th>
+                  <th className="py-4 px-4">Min Purchase</th>
+                  <th className="py-4 px-4">Expiry Date</th>
+                  <th className="py-4 px-4">Status</th>
+                  <th className="py-4 px-4 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-85 font-medium">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 block sm:table-row-group">
                 {coupons.map((c) => {
                   const isExpired = new Date(c.expiryDate) <= new Date();
                   return (
-                    <tr key={c._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Ticket className="w-4 h-4 text-cyan-500" />
-                          <span className="font-extrabold text-slate-750 dark:text-white text-sm tracking-wide uppercase">{c.code}</span>
+                    <tr key={c._id} className="hover:bg-slate-100/30 dark:hover:bg-slate-900/30 transition-colors block sm:table-row p-4 sm:p-0">
+                      {/* Code */}
+                      <td className="py-1 sm:py-4 px-0 sm:px-4 block sm:table-cell mb-2 sm:mb-0">
+                        <div className="flex items-center justify-between sm:justify-start space-x-2">
+                          <div className="flex items-center space-x-2">
+                            <Ticket className="w-4 h-4 text-cyan-500" />
+                            <span className="font-black text-slate-800 dark:text-white text-sm tracking-wide uppercase">{c.code}</span>
+                          </div>
+                          <span className="sm:hidden text-[9px] text-slate-400 border border-slate-200 dark:border-slate-800 px-2 rounded-lg font-bold">ID: {c._id.slice(-6).toUpperCase()}</span>
                         </div>
                       </td>
-                      <td className="p-4">
-                        {c.discountType === 'percentage' ? (
-                          <span className="bg-indigo-500/10 text-indigo-500 px-2 py-0.5 rounded-full font-bold">{c.discountValue}% Off</span>
-                        ) : (
-                          <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-bold">₹{c.discountValue} Off</span>
-                        )}
-                      </td>
-                      <td className="p-4">₹{c.minPurchase}</td>
-                      <td className="p-4">{c.usageLimitPerUser} time(s)</td>
-                      <td className="p-4">
-                        <div className="flex items-center space-x-1.5 text-slate-500">
-                          <Calendar className="w-3.5 h-3.5" />
-                          <span>{new Date(c.expiryDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>
+
+                      {/* Discount */}
+                      <td className="py-1 sm:py-4 px-0 sm:px-4 block sm:table-cell mb-2 sm:mb-0">
+                        <div className="flex items-center justify-between sm:block">
+                          <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">Discount</span>
+                          {c.discountType === 'percentage' ? (
+                            <span className="bg-indigo-500/10 text-indigo-500 px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-wider">{c.discountValue}% Off</span>
+                          ) : (
+                            <span className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-wider">₹{c.discountValue} Off</span>
+                          )}
                         </div>
                       </td>
-                      <td className="p-4">
-                        {isExpired ? (
-                          <span className="text-rose-500 bg-rose-500/10 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase">Expired</span>
-                        ) : c.isActive ? (
-                          <span className="text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase">Active</span>
-                        ) : (
-                          <span className="text-slate-400 bg-slate-500/10 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase">Inactive</span>
-                        )}
+
+                      {/* Min Purchase */}
+                      <td className="py-1 sm:py-4 px-0 sm:px-4 block sm:table-cell mb-2 sm:mb-0">
+                        <div className="flex items-center justify-between sm:block">
+                          <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">Min Order</span>
+                          <span className="font-bold text-slate-600 dark:text-slate-300">₹{c.minPurchase}</span>
+                        </div>
                       </td>
-                      <td className="p-4">
-                        <div className="flex items-center justify-center space-x-2">
-                          {/* Toggle Active status */}
+
+                      {/* Expiry */}
+                      <td className="py-1 sm:py-4 px-0 sm:px-4 block sm:table-cell mb-2 sm:mb-0">
+                        <div className="flex items-center justify-between sm:block">
+                          <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">Expires On</span>
+                          <div className="flex items-center space-x-1.5 text-slate-500 text-[10px] font-bold">
+                            <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>{new Date(c.expiryDate).toLocaleDateString(undefined, { dateStyle: 'medium' })}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-1 sm:py-4 px-0 sm:px-4 block sm:table-cell mb-3 sm:mb-0">
+                        <div className="flex items-center justify-between sm:block">
+                          <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">Status</span>
+                          {isExpired ? (
+                            <span className="text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-full font-black text-[9px] uppercase tracking-widest border border-rose-500/20">Expired</span>
+                          ) : c.isActive ? (
+                            <span className="text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full font-black text-[9px] uppercase tracking-widest border border-emerald-500/20">Active</span>
+                          ) : (
+                            <span className="text-slate-400 bg-slate-500/10 px-2.5 py-1 rounded-full font-black text-[9px] uppercase tracking-widest border border-slate-500/20">Inactive</span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-2 sm:py-4 px-0 sm:px-4 block sm:table-cell border-t sm:border-0 border-slate-100 dark:border-slate-800 mt-2 sm:mt-0 pt-3 sm:pt-0">
+                        <div className="flex justify-end sm:justify-center items-center gap-2">
                           <button
                             onClick={() => handleToggleActive(c._id)}
-                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-80 text-slate-400 hover:text-cyan-500 transition-colors"
-                            title={c.isActive ? 'Deactivate Coupon' : 'Activate Coupon'}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 p-2 sm:p-1.5 rounded-xl sm:rounded-full border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-cyan-500 transition-all font-bold text-[10px] uppercase"
+                            title={c.isActive ? 'Deactivate' : 'Activate'}
                           >
                             {c.isActive ? <ToggleRight className="w-5 h-5 text-cyan-500" /> : <ToggleLeft className="w-5 h-5" />}
+                            <span className="sm:hidden">{c.isActive ? 'Deactivate' : 'Activate'}</span>
                           </button>
-
-                          {/* Delete */}
                           <button
                             onClick={() => handleDelete(c._id)}
-                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-80 text-slate-400 hover:text-rose-500 hover:border-rose-500 transition-all"
-                            title="Delete Coupon"
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 p-2 sm:p-1.5 rounded-xl sm:rounded-full border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-rose-500 transition-all font-bold text-[10px] uppercase"
+                            title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
+                            <span className="sm:hidden">Delete</span>
                           </button>
                         </div>
                       </td>

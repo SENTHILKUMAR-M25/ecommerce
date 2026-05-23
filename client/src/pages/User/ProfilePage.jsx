@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { updateProfile } from '../../redux/slices/authSlice';
 import { useToast } from '../../components/common/ToastContext';
-import { User, MapPin, Key, Save, Plus, Trash2, Shield, Phone, Mail, Award, CheckCircle } from 'lucide-react';
+import { User, MapPin, Key, Save, Plus, Trash2, Shield, Phone, Mail, Award, CheckCircle, Star } from 'lucide-react';
 import API from '../../services/api';
 
 const ProfilePage = () => {
@@ -28,6 +29,37 @@ const ProfilePage = () => {
   const [state, setState] = useState('');
   const [country, setCountry] = useState('United States');
   const [zipCode, setZipCode] = useState('');
+  
+  // Reviews state
+  const [reviews, setReviews] = useState([]);
+  const [reviewLoading, setReviewLoading] = useState(false);
+
+  // Fetch reviews on mount
+  useEffect(() => {
+    const fetchMyReviews = async () => {
+      try {
+        setReviewLoading(true);
+        const res = await API.get('/reviews/user/my');
+        setReviews(res.data.data);
+      } catch (err) {
+        console.error('Failed to fetch personal reviews', err);
+      } finally {
+        setReviewLoading(false);
+      }
+    };
+    fetchMyReviews();
+  }, []);
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('Delete this review permanently?')) return;
+    try {
+      await API.delete(`/reviews/delete/${reviewId}`);
+      setReviews(prev => prev.filter(r => r._id !== reviewId));
+      toast('Review removed successfully.', 'info');
+    } catch (err) {
+      toast(err || 'Failed to remove review.', 'error');
+    }
+  };
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -167,6 +199,78 @@ const ProfilePage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Side: forms for profile & passwords */}
         <div className="lg:col-span-2 space-y-8">
+          
+          {/* My Experience & Reviews Section */}
+          <div className="glass-panel p-8 rounded-[2.5rem] border border-white/10 shadow-xl space-y-6 flex flex-col hover:border-cyan-500/20 transition-all duration-300">
+             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+              <h2 className="font-bold text-lg flex items-center gap-2.5">
+                <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+                <span>My Experience & Reviews</span>
+              </h2>
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                {reviews.length || 0} Total Feedback
+              </span>
+            </div>
+
+            {reviewLoading ? (
+              <div className="py-20 flex justify-center">
+                <div className="w-8 h-8 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+              </div>
+            ) : reviews.length === 0 ? (
+              <div className="py-12 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-center space-y-3 bg-slate-50/50 dark:bg-slate-900/20">
+                <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center mx-auto shadow-md">
+                  <Star className="w-8 h-8 text-slate-200" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold">No reviews shared yet</p>
+                  <p className="text-xs text-slate-400 px-6">Visit your past orders to share your thoughts on the products you've received.</p>
+                </div>
+                <Link to="/products" className="inline-block text-[10px] font-bold uppercase tracking-widest text-cyan-500 pt-2 hover:underline">
+                  Browse Collections
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-hide">
+                {reviews.map((rev) => (
+                  <div key={rev._id} className="p-5 rounded-3xl border border-white/10 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 space-y-3 group/rev transition-all hover:bg-white dark:hover:bg-slate-900 hover:shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-amber-400">
+                        {Array(5).fill(0).map((_, i) => (
+                          <Star key={i} className={`w-3 h-3 ${i < rev.rating ? 'fill-amber-400' : 'text-slate-200 dark:text-slate-800'}`} />
+                        ))}
+                      </div>
+                      <button 
+                        onClick={() => handleDeleteReview(rev._id)}
+                        className="opacity-0 group-hover/rev:opacity-100 p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all active:scale-90"
+                        title="Delete Review"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    
+                    <Link to={`/product/${rev.product?.slug}`} className="block">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-cyan-500 truncate mb-1">
+                        {rev.product?.name || 'Product'}
+                      </p>
+                      <p className="text-xs text-slate-650 dark:text-slate-350 line-clamp-3 leading-relaxed font-medium italic">
+                        "{rev.comment}"
+                      </p>
+                    </Link>
+                    
+                    <div className="flex items-center justify-between pt-2">
+                       <span className="text-[9px] font-bold text-slate-400">
+                        {new Date(rev.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                      <Link to={`/product/${rev.product?.slug}`} className="text-[9px] font-bold text-slate-500 hover:text-cyan-500 underline flex items-center gap-1">
+                        View Item
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Profile form */}
           <form onSubmit={handleUpdateProfile} className="glass-panel p-8 rounded-3xl border border-white/10 shadow-xl space-y-6 hover:border-cyan-500/20 transition-all duration-300">
             <h2 className="font-bold text-lg flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-4">

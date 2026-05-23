@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, ArrowRight, ShieldCheck, Truck, RotateCcw, Star, ChevronLeft, ChevronRight, Ticket, Copy, Check } from 'lucide-react';
@@ -117,6 +117,11 @@ const Home = () => {
   ];
 
   const [slideIndex, setSlideIndex] = useState(0);
+  const categoryRef = useRef(null);
+
+  const scrollCategories = (dir) => {
+    categoryRef.current?.scrollBy({ left: dir * 300, behavior: 'smooth' });
+  };
 
   // Auto-advance carousel every 5s
   useEffect(() => {
@@ -299,33 +304,58 @@ const Home = () => {
         ))}
       </section>
 
-      {/* 3. CATEGORIES SECTION */}
-      <section className="space-y-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      {/* 3. CATEGORIES CAROUSEL */}
+      <section className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <h2 className="text-3xl font-extrabold tracking-tight">Explore Categories</h2>
             <p className="text-slate-500 mt-1">Carefully conceptualized catalogs tailored to fit your preferences.</p>
           </div>
+          {/* Carousel Controls */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={() => scrollCategories(-1)}
+              className="p-2.5 rounded-full border border-white/10 bg-white/40 dark:bg-slate-900/60 hover:bg-cyan-500/10 hover:border-cyan-500/40 text-slate-600 dark:text-slate-300 transition-all"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => scrollCategories(1)}
+              className="p-2.5 rounded-full border border-white/10 bg-white/40 dark:bg-slate-900/60 hover:bg-cyan-500/10 hover:border-cyan-500/40 text-slate-600 dark:text-slate-300 transition-all"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Scrollable Carousel Row */}
+        <div
+          ref={categoryRef}
+          className="flex gap-5 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {loading
-            ? Array(4).fill(0).map((_, i) => <div key={i} className="h-64 rounded-3xl skeleton-shimmer"></div>)
+            ? Array(6).fill(0).map((_, i) => (
+                <div key={i} className="min-w-[260px] h-64 rounded-3xl skeleton-shimmer flex-shrink-0" />
+              ))
             : categories.map((c) => (
                 <Link
                   key={c._id}
                   to={`/products?category=${c.slug}`}
-                  className="group relative h-72 rounded-3xl overflow-hidden glass-panel border border-white/10 shadow-lg block active:scale-98 transition-all duration-300"
+                  className="group relative min-w-[260px] sm:min-w-[280px] h-72 rounded-3xl overflow-hidden glass-panel border border-white/10 shadow-lg flex-shrink-0 snap-start block active:scale-98 transition-all duration-300"
                 >
                   <img
                     src={c.image}
                     alt={c.name}
+                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x300/1e293b/94a3b8?text=' + encodeURIComponent(c.name); }}
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
                   <div className="absolute bottom-6 left-6 right-6 space-y-2">
                     <h3 className="text-xl font-bold text-white">{c.name}</h3>
-                    <p className="text-xs text-slate-350 line-clamp-2">{c.description}</p>
+                    <p className="text-xs text-slate-300 line-clamp-2">{c.description}</p>
                     <div className="text-[10px] text-cyan-400 group-hover:translate-x-1.5 transition-transform duration-300 flex items-center space-x-1 font-bold uppercase tracking-wider">
                       <span>Browse Products</span>
                       <ArrowRight className="w-3 h-3" />
@@ -352,9 +382,9 @@ const Home = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {loading
-            ? Array(4).fill(0).map((_, i) => <SkeletonCard key={i} />)
+            ? Array(8).fill(0).map((_, i) => <SkeletonCard key={i} />)
             : featuredProducts.map((p) => (
                 <ProductCard key={p._id} product={p} />
               ))}

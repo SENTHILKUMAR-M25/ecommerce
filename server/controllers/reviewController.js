@@ -116,3 +116,20 @@ export const getProductReviews = async (req, res, next) => {
     next(error);
   }
 };
+// @desc    Get all reviews by logged in user
+// @route   GET /api/reviews/user/my
+// @access  Private
+export const getUserReviews = async (req, res, next) => {
+  try {
+    const reviews = await Review.find({ user: req.user._id })
+      .populate('product', 'name slug images')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: reviews
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -54,6 +54,10 @@ const productSchema = new mongoose.Schema({
     default: 0
   },
   variants: [variantSchema],
+  colorImages: [{
+    color: { type: String, required: true }, // The color name (e.g. 'Red')
+    image: { type: String, required: true }  // The image URL corresponding to this color
+  }],
   isFeatured: {
     type: Boolean,
     default: false

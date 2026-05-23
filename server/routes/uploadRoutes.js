@@ -37,8 +37,11 @@ router.post('/', upload.array('images', 5), (req, res) => {
     return res.status(400).json({ success: false, message: 'No images uploaded' });
   }
 
-  // Construct full paths for the uploaded files
-  const filePaths = req.files.map(file => `/${file.path.replace(/\\/g, '/')}`);
+  // Normalize path: replace backslashes (Windows), strip leading slash duplicates
+  const filePaths = req.files.map(file => {
+    const normalized = file.path.replace(/\\/g, '/').replace(/^\/+/, '');
+    return `/${normalized}`;
+  });
 
   res.json({
     success: true,

@@ -95,6 +95,15 @@
   background: rgba(99, 102, 241, 0.4);
 }
 
+/* Hide scrollbar utility (for category carousel) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Shimmer Loading Animation */
 @keyframes shimmer {
   0% { background-position: -200% 0; }

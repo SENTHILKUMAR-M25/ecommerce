@@ -84,14 +84,14 @@ const OrderManager = () => {
       {loading ? (
         <LoadingSpinner />
       ) : filteredOrders.length === 0 ? (
-        <div className="py-12 glass-panel border border-dashed border-slate-205 dark:border-slate-805 rounded-[2rem] text-center text-slate-400 text-sm">
+        <div className="py-12 glass-panel border border-dashed border-slate-200 dark:border-slate-800 rounded-[2rem] text-center text-slate-400 text-sm">
           No matching transactions discovered.
         </div>
       ) : (
-        <div className="glass-panel border border-white/10 rounded-[2rem] overflow-hidden shadow-lg p-6">
+        <div className="glass-panel border border-white/10 rounded-[2rem] overflow-hidden shadow-lg p-0 sm:p-6 bg-white/50 dark:bg-slate-900/40 backdrop-blur-md">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
-              <thead>
+              <thead className="hidden sm:table-header-group">
                 <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 uppercase tracking-wider font-bold">
                   <th className="py-3 px-4">Order ID</th>
                   <th className="py-3 px-4">Placement Date</th>
@@ -100,42 +100,63 @@ const OrderManager = () => {
                   <th className="py-3 px-4 text-center">Status Control</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 block sm:table-row-group">
                 {filteredOrders.map((o) => (
-                  <tr key={o._id} className="hover:bg-slate-100/30 dark:hover:bg-slate-900/30 transition-colors">
+                  <tr key={o._id} className="hover:bg-slate-100/30 dark:hover:bg-slate-900/30 transition-colors block sm:table-row p-4 sm:p-0">
                     {/* ID */}
-                    <td className="py-3.5 px-4 font-bold select-all">{o._id}</td>
+                    <td className="py-1 sm:py-3.5 px-0 sm:px-4 block sm:table-cell mb-2 sm:mb-0">
+                      <div className="flex items-center justify-between sm:block">
+                        <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">Order ID</span>
+                        <span className="font-bold select-all font-mono text-cyan-600 dark:text-cyan-400">{o._id.slice(-8).toUpperCase()}</span>
+                      </div>
+                    </td>
 
                     {/* Date */}
-                    <td className="py-3.5 px-4 font-semibold text-slate-550 dark:text-slate-400">
-                      {new Date(o.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                    <td className="py-1 sm:py-3.5 px-0 sm:px-4 block sm:table-cell mb-2 sm:mb-0">
+                      <div className="flex items-center justify-between sm:block">
+                        <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">Placed On</span>
+                        <span className="font-semibold text-slate-600 dark:text-slate-400">
+                          {new Date(o.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                        </span>
+                      </div>
                     </td>
 
                     {/* Customer */}
-                    <td className="py-3.5 px-4">
-                      <p className="font-bold text-slate-700 dark:text-slate-200">{o.user?.name || 'Guest User'}</p>
-                      <p className="text-[10px] text-slate-400 truncate max-w-[150px]">{o.user?.email || 'guest@example.com'}</p>
+                    <td className="py-1 sm:py-3.5 px-0 sm:px-4 block sm:table-cell mb-2 sm:mb-0">
+                      <div className="flex items-center justify-between sm:block">
+                        <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">Customer</span>
+                        <div className="text-right sm:text-left">
+                          <p className="font-bold text-slate-800 dark:text-slate-200">{o.user?.name || 'Guest User'}</p>
+                          <p className="text-[10px] text-slate-400 truncate max-w-[200px]">{o.user?.email || 'guest@example.com'}</p>
+                        </div>
+                      </div>
                     </td>
 
                     {/* Total */}
-                    <td className="py-3.5 px-4 font-extrabold text-cyan-600 dark:text-cyan-400">
-                      ₹{o.totalPrice.toFixed(2)}
+                    <td className="py-1 sm:py-3.5 px-0 sm:px-4 block sm:table-cell mb-3 sm:mb-0">
+                      <div className="flex items-center justify-between sm:block">
+                        <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">Total Amount</span>
+                        <span className="font-black text-slate-900 dark:text-white text-sm sm:text-xs">
+                          ₹{o.totalPrice.toFixed(2)}
+                        </span>
+                      </div>
                     </td>
 
                     {/* Status Dropdown control */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex justify-center items-center gap-3">
+                    <td className="py-2 sm:py-3.5 px-0 sm:px-4 block sm:table-cell border-t sm:border-0 border-slate-100 dark:border-slate-800 mt-2 sm:mt-0 pt-3 sm:pt-0">
+                      <div className="flex justify-between sm:justify-center items-center gap-3">
+                        <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">Update Status</span>
                         <select
                           disabled={actionLoading}
                           value={o.status}
                           onChange={(e) => handleStatusChange(o._id, e.target.value)}
-                          className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase focus:outline-none ${statusBadges[o.status]}`}
+                          className={`px-4 py-2 sm:py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider focus:outline-none transition-all shadow-sm ${statusBadges[o.status]}`}
                         >
-                          <option value="Pending" className="text-slate-700 bg-white dark:bg-slate-950 font-semibold">Pending</option>
-                          <option value="Processing" className="text-slate-700 bg-white dark:bg-slate-950 font-semibold">Processing</option>
-                          <option value="Shipped" className="text-slate-700 bg-white dark:bg-slate-950 font-semibold">Shipped</option>
-                          <option value="Delivered" className="text-slate-700 bg-white dark:bg-slate-950 font-semibold">Delivered</option>
-                          <option value="Cancelled" className="text-slate-700 bg-white dark:bg-slate-950 font-semibold">Cancelled</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Processing">Processing</option>
+                          <option value="Shipped">Shipped</option>
+                          <option value="Delivered">Delivered</option>
+                          <option value="Cancelled">Cancelled</option>
                         </select>
                       </div>
                     </td>
