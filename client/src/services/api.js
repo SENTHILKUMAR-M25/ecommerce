@@ -45,7 +45,28 @@ API.interceptors.response.use(
   }
   
 );
+
 export const getActiveOffers = async () => {
   return await API.get("/offers/active");
 };
+
+export const resolveImage = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http") && !path.includes("localhost:5000")) return path;
+  
+  const baseUrl = "https://ecommerce-73js.onrender.com";
+  
+  // If it's an absolute localhost URL from old DB state, swap it
+  if (path.includes("localhost:5000")) {
+    return path.replace("http://localhost:5000", baseUrl);
+  }
+  
+  // If it's a relative path
+  if (path.startsWith("/")) {
+    return `${baseUrl}${path}`;
+  }
+  
+  return `${baseUrl}/${path}`;
+};
+
 export default API;

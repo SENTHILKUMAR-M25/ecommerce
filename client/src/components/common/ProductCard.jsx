@@ -90,7 +90,7 @@ const ProductCard = ({ product, offer }) => {
       <div className="relative aspect-square overflow-hidden group bg-slate-100 dark:bg-slate-900">
         <Link to={`/product/${product.slug}`} className="block w-full h-full">
           <img
-            src={product.images?.[0]}
+            src={resolveImage(product.images?.[0])}
             alt={product.name}
             onError={(e) => {
               e.target.onerror = null;
