@@ -5,6 +5,7 @@ import { Star, ShoppingBag, Heart } from 'lucide-react';
 import { addToCart } from '../../redux/slices/cartSlice';
 import { addToWishlist, removeFromWishlist } from '../../redux/slices/wishlistSlice';
 import { useToast } from './ToastContext';
+import { resolveImage } from '../../services/api';
 
 const ProductCard = ({ product, offer }) => {
   const dispatch = useDispatch();
