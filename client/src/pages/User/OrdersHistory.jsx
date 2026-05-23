@@ -4,7 +4,7 @@ import { fetchMyOrders, cancelMyOrder } from '../../redux/slices/orderSlice';
 import { useToast } from '../../components/common/ToastContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Link } from 'react-router-dom';
-import { Calendar, ShieldAlert, ShoppingBag, Truck, CheckCircle2, XCircle } from 'lucide-react';
+import { Calendar, ShieldAlert, ShoppingBag, Truck, CheckCircle2, XCircle, FileText } from 'lucide-react';
 
 const OrdersHistory = () => {
   const dispatch = useDispatch();
@@ -93,7 +93,14 @@ const OrdersHistory = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  to={`/order/invoice/${order._id}`}
+                  className="flex items-center space-x-2 px-4 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 hover:bg-cyan-500/10 hover:text-cyan-500 text-slate-500 font-bold transition-all text-[10px]"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Download Invoice</span>
+                </Link>
                 {statusBadges[order.status]}
               </div>
             </div>

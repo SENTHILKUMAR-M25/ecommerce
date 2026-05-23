@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { CheckCircle, Calendar, ArrowRight, ShoppingBag } from 'lucide-react';
+import { CheckCircle, Calendar, ArrowRight, ShoppingBag, FileText } from 'lucide-react';
 
 const PaymentSuccess = () => {
   const { orderId } = useParams();
@@ -52,6 +52,14 @@ const PaymentSuccess = () => {
         >
           <span>Track Order History</span>
           <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+        
+        <Link
+          to={`/order/invoice/${orderId}`}
+          className="flex items-center justify-center space-x-2 px-6 py-3 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-cyan-500 font-bold text-xs hover:bg-cyan-500/10 transition-all"
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span>View Official Invoice</span>
         </Link>
         
         <Link

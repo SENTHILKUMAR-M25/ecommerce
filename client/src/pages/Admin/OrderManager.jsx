@@ -3,7 +3,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchAdminOrders, updateAdminOrderStatus } from '../../redux/slices/adminSlice';
 import { useToast } from '../../components/common/ToastContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { ClipboardList, ShieldAlert, Search } from 'lucide-react';
+import { ClipboardList, ShieldAlert, Search, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const OrderManager = () => {
   const dispatch = useDispatch();
@@ -146,18 +147,27 @@ const OrderManager = () => {
                     <td className="py-2 sm:py-3.5 px-0 sm:px-4 block sm:table-cell border-t sm:border-0 border-slate-100 dark:border-slate-800 mt-2 sm:mt-0 pt-3 sm:pt-0">
                       <div className="flex justify-between sm:justify-center items-center gap-3">
                         <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase">Update Status</span>
-                        <select
-                          disabled={actionLoading}
-                          value={o.status}
-                          onChange={(e) => handleStatusChange(o._id, e.target.value)}
-                          className={`px-4 py-2 sm:py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider focus:outline-none transition-all shadow-sm ${statusBadges[o.status]}`}
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Processing">Processing</option>
-                          <option value="Shipped">Shipped</option>
-                          <option value="Delivered">Delivered</option>
-                          <option value="Cancelled">Cancelled</option>
-                        </select>
+                        <div className="flex items-center gap-3">
+                          <Link 
+                            to={`/order/invoice/${o._id}`}
+                            className="p-2 rounded-full border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-cyan-500 hover:bg-cyan-500/10 transition-all shadow-sm"
+                            title="Print Invoice"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </Link>
+                          <select
+                            disabled={actionLoading}
+                            value={o.status}
+                            onChange={(e) => handleStatusChange(o._id, e.target.value)}
+                            className={`px-4 py-2 sm:py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider focus:outline-none transition-all shadow-sm ${statusBadges[o.status]}`}
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Cancelled">Cancelled</option>
+                          </select>
+                        </div>
                       </div>
                     </td>
                   </tr>

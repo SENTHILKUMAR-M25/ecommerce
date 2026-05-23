@@ -38,9 +38,9 @@ app.use((req, res, next) => {
 
 // Speed & Security Middleware
 app.use(helmet({
-    crossOriginResourcePolicy: false,
-    crossOriginEmbedderPolicy: false,
-    contentSecurityPolicy: false, // Allows images from any origin in dev
+  crossOriginResourcePolicy: false,
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false, // Allows images from any origin in dev
 }));
 app.use(compression());
 
@@ -51,12 +51,12 @@ app.use(express.urlencoded({ extended: true }));
 // CORS Configuration
 app.use(
   cors({
-    origin:[
+    origin: [
       "https://ecommerce-eight-virid-50.vercel.app",
       // "https://ecommerce-eight-virid-50.vercel.app",
-    
-  ],
-  credentials: true,
+
+    ],
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
@@ -110,13 +110,12 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/offers', offerRoutes);
-// Static Uploads Folder
+// Static Uploads Folder with CORS allowed for PDF generations
 const __dirname = path.resolve();
-
-app.use(
-  '/uploads',
-  express.static(path.join(__dirname, '/uploads'))
-);
+app.use('/uploads', (req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  next();
+}, express.static(path.join(__dirname, '/uploads')));
 
 // 404 Middleware
 app.use(notFound);
@@ -130,8 +129,7 @@ const PORT = process.env.PORT || 5000;
 // Start Server
 app.listen(PORT, () => {
   console.log(
-    `[Server] running in ${
-      process.env.NODE_ENV || 'development'
+    `[Server] running in ${process.env.NODE_ENV || 'development'
     } mode on port ${PORT}`
   );
 });

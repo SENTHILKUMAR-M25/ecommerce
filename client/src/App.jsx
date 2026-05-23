@@ -12,6 +12,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
 import { ProtectedRoute, AdminRoute } from './router/ProtectedRoutes';
+import OrderInvoice from './pages/Common/InvoicePage';
 
 // Lazy Loaded Pages
 const Home = lazy(() => import('./pages/User/Home'));
@@ -35,6 +36,7 @@ const UserManager = lazy(() => import('./pages/Admin/UserManager'));
 const AuditLogs = lazy(() => import('./pages/Admin/AuditLogs'));
 const CouponManager = lazy(() => import('./pages/Admin/CouponManager'));
 const OffersPage = lazy(() => import('./pages/Admin/OfferPage'));
+// const OrderInvoice = lazy(() => import('./pages/Common/InvoicePage'));
 
 function App() {
   return (
@@ -115,6 +117,7 @@ function App() {
                         <OrdersHistory />
                       </MainLayout>
                     } />
+                    <Route path="/order/invoice/:id" element={<OrderInvoice />} />
                   </Route>
 
                   {/* Administrative Routes (Admin Sidebar Layout) */}
