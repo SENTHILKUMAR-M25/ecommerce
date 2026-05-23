@@ -18,7 +18,7 @@ import API from "../../services/api";
 import ProductCard from "../../components/common/ProductCard";
 import SkeletonCard from "../../components/common/SkeletonCard";
 import CountdownTimer from "../../components/common/CountdownTimer";
-import SEO from "../../components/common/SEO";
+
 
 /* ------------------------------------------------------------------ */
 /* Animated skeleton loader                                              */
@@ -127,12 +127,7 @@ const OffersProductPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24">
-      <SEO
-        title={`${offer.title} — Exclusive Deal`}
-        description={`Save ${discountLabel} on premium Aura products. Offer ends ${endDateLabel}.`}
-        image={offer.banner}
-        keywords="offers, discounts, deals, premium shopping, Aura"
-      />
+
 
       {/* ── STICKY PAGE HEADER ── */}
       <div className="sticky top-0 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/5 shadow-sm">

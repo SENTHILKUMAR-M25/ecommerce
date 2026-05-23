@@ -10,7 +10,7 @@ import ProductCard from '../../components/common/ProductCard';
 import CountdownTimer from '../../components/common/CountdownTimer';
 import { Star, ShoppingBag, Heart, Check, Plus, Minus, ArrowLeft, Send } from 'lucide-react';
 import API from '../../services/api';
-import SEO from '../../components/common/SEO';
+
 
 const ProductDetails = () => {
   const { slug } = useParams();
@@ -183,13 +183,7 @@ const ProductDetails = () => {
 
   return (
     <div className="space-y-16 pb-16">
-      <SEO 
-        title={product.name} 
-        description={product.description} 
-        image={product.images[0]}
-        keywords={`${product.name}, ${product.category?.name}, premium products, Aura`}
-        type="product"
-      />
+
       {/* Back button */}
       <Link to="/products" className="inline-flex items-center gap-2 text-sm font-semibold hover:text-cyan-500 transition-colors">
         <ArrowLeft className="w-4 h-4" />
