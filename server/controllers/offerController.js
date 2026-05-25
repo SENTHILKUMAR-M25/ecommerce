@@ -85,7 +85,7 @@ export const createOffer = async (req, res, next) => {
 export const getOfferBySlug = async (req, res, next) => {
   try {
     let offer = await Offer.findOne({ slug: req.params.slug, isActive: true })
-      .populate("products");
+      .populate("products.product");
 
     if (!offer) {
       return res.status(404).json({
@@ -111,7 +111,7 @@ export const getOfferBySlug = async (req, res, next) => {
        }
 
        const categoryProducts = await Product.find({ category: categoryId }).limit(20);
-       offer.products = categoryProducts;
+       offer.products = categoryProducts.map(p => ({ product: p, quantity: 1 }));
     }
 
     res.status(200).json({
@@ -159,7 +159,7 @@ export const getActiveOffers = async (req, res, next) => {
         { startDate: null, endDate: null }
       ]
     })
-    .populate("products")
+    .populate("products.product")
     .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -349,7 +349,7 @@ export const getProductOffer = async (req, res, next) => {
         { startDate: null, endDate: null },
       ],
       $or: [
-        { products: productId },
+        { "products.product": productId },
         { category: product.category?.name },
       ],
     }).sort({ discountValue: -1 }); // Get best discount first

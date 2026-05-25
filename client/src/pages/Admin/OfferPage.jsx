@@ -9,10 +9,14 @@ import {
   IndianRupee,
   Sparkles,
   Loader2,
+  X,
 } from "lucide-react";
 
-import API from "../../services/api";
+import API, { resolveImage } from "../../services/api";
 import { useToast } from "../../components/common/ToastContext";
+
+// Derive server origin from API baseURL (strips /api suffix)
+const SERVER_BASE = API.defaults.baseURL?.replace(/\/api\/?$/, '') || 'http://localhost:5000';
 
 const OffersPage = () => {
   const [loading, setLoading] = useState(false);
@@ -72,7 +76,7 @@ const OffersPage = () => {
       });
 
       // Assuming backend returns an array in data.data
-      const imageUrl = `http://localhost:5000${data.data[0]}`;
+      const imageUrl = `${SERVER_BASE}${data.data[0]}`;
       setFormData((prev) => ({ ...prev, banner: imageUrl }));
       toast("Banner uploaded successfully!", "success");
     } catch (error) {
@@ -167,6 +171,11 @@ const OffersPage = () => {
         minPurchase: formData.minPurchase ? Number(formData.minPurchase) : 0,
         startDate: formData.startDate || null,
         endDate: formData.endDate || null,
+        // Ensure products are sent in correct format { product: id, quantity: qty }
+        products: formData.products.map(p => ({
+          product: p.product._id || p.product,
+          quantity: Number(p.quantity) || 1
+        }))
       };
 
       if (editingId) {
@@ -238,7 +247,11 @@ const OffersPage = () => {
       startDate: formatDateTime(offer.startDate),
       endDate: formatDateTime(offer.endDate),
       minPurchase: offer.minPurchase || "",
-      products: offer.products || [],
+      products: (offer.products || []).map(p => ({
+        product: p.product._id || p.product,
+        quantity: p.quantity || 1,
+        name: p.product.name // Save name for display if populated
+      })),
       category: offer.category || "",
       couponCode: offer.couponCode || "",
     });
@@ -337,12 +350,19 @@ const OffersPage = () => {
                    </div>
                 </div>
                 
-                {formData.banner && (
-                  <div className="relative w-full h-12 rounded-lg overflow-hidden border border-white/5">
-                    <img src={formData.banner} alt="Preview" className="w-full h-full object-cover opacity-50" />
-                    <div className="absolute inset-0 flex items-center px-3 bg-black/40">
-                      <p className="text-[10px] text-emerald-400 font-mono truncate">{formData.banner}</p>
+                 {formData.banner && (
+                  <div className="relative w-full group rounded-2xl overflow-hidden border border-white/10 shadow-lg aspect-video mt-2">
+                    <img src={resolveImage(formData.banner)} alt="Preview" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+                      <p className="text-[10px] text-cyan-400 font-mono truncate bg-black/40 px-2 py-1 rounded-md backdrop-blur-sm border border-white/5">{formData.banner}</p>
                     </div>
+                    <button 
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, banner: '' }))}
+                      className="absolute top-2 right-2 p-2 bg-rose-500/80 hover:bg-rose-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
               </div>
@@ -467,27 +487,81 @@ const OffersPage = () => {
 
             {/* CONDITIONAL PRODUCT SELECTION */}
             {formData.type === "product" && (
-              <div className="md:col-span-2 space-y-2">
+              <div className="md:col-span-3 space-y-4">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  Targeted Products <span className="text-slate-500 text-[10px] ml-2">(Hold Ctrl to select multiple)</span>
+                  Targeted Products & Quantities
                 </label>
-                <select
-                  multiple
-                  name="products"
-                  value={formData.products}
-                  onChange={(e) => {
-                    const values = Array.from(e.target.selectedOptions, option => option.value);
-                    setFormData(prev => ({ ...prev, products: values }));
-                  }}
-                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 transition-all h-32 scrollbar-thin scrollbar-thumb-cyan-500/20"
-                >
-                  {productList.map(p => (
-                    <option key={p._id} value={p._id} className="bg-slate-900 text-white p-2 border-b border-white/5 last:border-0">{p.name}</option>
-                  ))}
-                </select>
-                <p className="text-[10px] text-cyan-500/70 font-bold uppercase tracking-wider ml-1">
-                   Inventory matching — {formData.products.length} units selected
-                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Product Search/Selector */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase">Select Product</span>
+                    <select
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        if (!id) return;
+                        const product = productList.find(p => p._id === id);
+                        if (product && !formData.products.find(p => p.product === id)) {
+                          setFormData(prev => ({
+                            ...prev,
+                            products: [...prev.products, { product: id, quantity: 1, name: product.name }]
+                          }));
+                        }
+                        e.target.value = "";
+                      }}
+                      className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="">Choose a product to add...</option>
+                      {productList.map(p => (
+                        <option key={p._id} value={p._id} className="bg-slate-900 text-white p-2">{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Selected Products List */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase">Selected Items ({formData.products.length})</span>
+                    <div className="max-h-48 overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                      {formData.products.length === 0 ? (
+                        <p className="text-slate-600 italic text-xs py-2">No products selected yet.</p>
+                      ) : (
+                        formData.products.map((item, idx) => {
+                          const pName = item.name || productList.find(p => p._id === (item.product._id || item.product))?.name;
+                          return (
+                            <div key={idx} className="flex items-center justify-between bg-white/5 border border-white/5 p-2 rounded-lg gap-2">
+                              <span className="text-xs truncate flex-1">{pName}</span>
+                              <div className="flex items-center gap-2">
+                                <input 
+                                  type="number"
+                                  min="1"
+                                  value={item.quantity}
+                                  onChange={(e) => {
+                                    const qty = Math.max(1, parseInt(e.target.value) || 1);
+                                    const updated = [...formData.products];
+                                    updated[idx] = { ...updated[idx], quantity: qty };
+                                    setFormData(prev => ({ ...prev, products: updated }));
+                                  }}
+                                  className="w-16 bg-black/40 border border-white/10 rounded px-2 py-1 text-xs outline-none focus:border-cyan-500"
+                                />
+                                <button 
+                                  onClick={() => {
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      products: prev.products.filter((_, i) => i !== idx)
+                                    }));
+                                  }}
+                                  className="text-rose-400 hover:text-rose-300 p-1"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

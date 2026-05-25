@@ -25,13 +25,13 @@ const CouponCard = ({ coupon }) => {
     day: 'numeric',
     year: 'numeric'
   });
- 
+
   return (
     <div className="relative overflow-hidden glass-panel border border-white/10 dark:border-white/5 bg-slate-950/70 p-6 rounded-3xl flex flex-col justify-between h-48 shadow-lg group hover:border-cyan-500/30 transition-all duration-300">
       {/* Decorative semi-circles on sides to simulate a real ticket */}
       <div className="absolute top-1/2 -left-3 w-6 h-6 rounded-full bg-slate-50 dark:bg-[#080a13] -translate-y-1/2 border-r border-white/10 z-10"></div>
       <div className="absolute top-1/2 -right-3 w-6 h-6 rounded-full bg-slate-50 dark:bg-[#080a13] -translate-y-1/2 border-l border-white/10 z-10"></div>
-      
+
       {/* Background glow effects */}
       <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-indigo-500/10 blur-2xl group-hover:bg-indigo-500/20 transition-all duration-300"></div>
       <div className="absolute -bottom-10 -left-10 w-24 h-24 rounded-full bg-cyan-500/10 blur-2xl group-hover:bg-cyan-500/20 transition-all duration-300"></div>
@@ -62,11 +62,10 @@ const CouponCard = ({ coupon }) => {
 
         <button
           onClick={handleCopy}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-xs shadow-md transition-all active:scale-95 ${
-            copied
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-xs shadow-md transition-all active:scale-95 ${copied
               ? 'bg-emerald-500 text-white shadow-emerald-500/20'
               : 'bg-white hover:bg-cyan-400 hover:text-white text-slate-950'
-          }`}
+            }`}
         >
           {copied ? (
             <>
@@ -275,11 +274,10 @@ const Home = () => {
             <button
               key={i}
               onClick={() => setSlideIndex(i)}
-              className={`transition-all duration-300 rounded-full ${
-                i === slideIndex
+              className={`transition-all duration-300 rounded-full ${i === slideIndex
                   ? 'w-6 h-2 bg-cyan-400'
                   : 'w-2 h-2 bg-white/40 hover:bg-white/70'
-              }`}
+                }`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}
@@ -289,8 +287,8 @@ const Home = () => {
       {/* 2. PREMIUM BRAND PILLARS */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {features.map((f, i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className="glass-panel p-8 rounded-3xl border border-white/10 flex items-start gap-4 hover:border-cyan-500/20 transition-all duration-300"
           >
             <div className="p-3 bg-slate-100 dark:bg-slate-900/80 rounded-2xl flex-shrink-0">
@@ -338,31 +336,31 @@ const Home = () => {
         >
           {loading
             ? Array(6).fill(0).map((_, i) => (
-                <div key={i} className="min-w-[260px] h-64 rounded-3xl skeleton-shimmer flex-shrink-0" />
-              ))
-            : categories.map((c) => (
-                <Link
-                  key={c._id}
-                  to={`/products?category=${c.slug}`}
-                  className="group relative min-w-[260px] sm:min-w-[280px] h-72 rounded-3xl overflow-hidden glass-panel border border-white/10 shadow-lg flex-shrink-0 snap-start block active:scale-98 transition-all duration-300"
-                >
-                  <img
-                    src={c.image}
-                    alt={c.name}
-                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x300/1e293b/94a3b8?text=' + encodeURIComponent(c.name); }}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
-                  <div className="absolute bottom-6 left-6 right-6 space-y-2">
-                    <h3 className="text-xl font-bold text-white">{c.name}</h3>
-                    <p className="text-xs text-slate-300 line-clamp-2">{c.description}</p>
-                    <div className="text-[10px] text-cyan-400 group-hover:translate-x-1.5 transition-transform duration-300 flex items-center space-x-1 font-bold uppercase tracking-wider">
-                      <span>Browse Products</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </div>
+              <div key={i} className="min-w-[260px] h-64 rounded-3xl skeleton-shimmer flex-shrink-0" />
+            ))
+            : (categories || []).map((c) => (
+              <Link
+                key={c._id}
+                to={`/products?category=${c.slug}`}
+                className="group relative min-w-[260px] sm:min-w-[280px] h-72 rounded-3xl overflow-hidden glass-panel border border-white/10 shadow-lg flex-shrink-0 snap-start block active:scale-98 transition-all duration-300"
+              >
+                <img
+                  src={c.image}
+                  alt={c.name}
+                  onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x300/1e293b/94a3b8?text=' + encodeURIComponent(c.name); }}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6 space-y-2">
+                  <h3 className="text-xl font-bold text-white">{c.name}</h3>
+                  <p className="text-xs text-slate-300 line-clamp-2">{c.description}</p>
+                  <div className="text-[10px] text-cyan-400 group-hover:translate-x-1.5 transition-transform duration-300 flex items-center space-x-1 font-bold uppercase tracking-wider">
+                    <span>Browse Products</span>
+                    <ArrowRight className="w-3 h-3" />
                   </div>
-                </Link>
-              ))}
+                </div>
+              </Link>
+            ))}
         </div>
       </section>
 
@@ -382,12 +380,26 @@ const Home = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        {/* <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {loading
             ? Array(8).fill(0).map((_, i) => <SkeletonCard key={i} />)
             : featuredProducts.map((p) => (
                 <ProductCard key={p._id} product={p} />
               ))}
+
+        </div> */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+          {loading ? (
+            Array(8)
+              .fill(0)
+              .map((_, i) => <SkeletonCard key={i} />)
+          ) : featuredProducts?.length > 0 ? (
+            featuredProducts.map((p) => (
+              <ProductCard key={p._id} product={p} />
+            ))
+          ) : (
+            <p>No featured products found</p>
+          )}
         </div>
       </section>
 
@@ -426,7 +438,7 @@ const Home = () => {
         )}
       </section>
       {/* 6. GLOWING TESTIMONIALS */}
-      <section className="space-y-8">
+      {/* <section className="space-y-8">
         <div className="text-center max-w-xl mx-auto space-y-2">
           <h2 className="text-3xl font-extrabold tracking-tight">Aura Testimonials</h2>
           <p className="text-slate-500">Read verified statements from real customers globally who love shopping on Aura.</p>
@@ -450,7 +462,7 @@ const Home = () => {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };

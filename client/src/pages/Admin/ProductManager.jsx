@@ -10,7 +10,7 @@ import { fetchProducts } from '../../redux/slices/productSlice';
 import { useToast } from '../../components/common/ToastContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Plus, Edit2, Trash2, X, AlertTriangle, Sparkles } from 'lucide-react';
-import API from '../../services/api';
+import API, { resolveImage } from '../../services/api';
 
 // Derive server origin from API baseURL (strips /api suffix)
 const SERVER_BASE = API.defaults.baseURL?.replace(/\/api\/?$/, '') || 'http://localhost:5000';
@@ -231,7 +231,7 @@ const ProductManager = () => {
                     {/* Item details */}
                     <td className="py-1 sm:py-3.5 px-0 sm:px-4 flex items-center gap-3 sm:table-cell mb-2 sm:mb-0">
                       <div className="flex items-center gap-3 w-full">
-                        <img src={p.images[0]} alt={p.name}
+                        <img src={resolveImage(p.images[0])} alt={p.name}
                           onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/80x80/1e293b/94a3b8?text=IMG`; }}
                           className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl object-cover border border-white/10 shadow-sm" />
                         <div className="truncate flex-1">
@@ -415,23 +415,51 @@ const ProductManager = () => {
                 {/* Image URLs or Upload */}
                 <div className="space-y-1 sm:col-span-2">
                   <span className="text-[10px] uppercase font-bold text-slate-400">Product Images</span>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      disabled={uploadingImage}
-                      className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-500/10 file:text-cyan-600 hover:file:bg-cyan-500/20 disabled:opacity-50"
-                    />
-                    {uploadingImage && <span className="text-cyan-500 text-xs self-center font-bold animate-pulse">Uploading...</span>}
-                  </div>
+                   <div className="flex gap-3 mb-3">
+                    <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl py-4 hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer group">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={uploadingImage}
+                        className="hidden"
+                      />
+                      <Plus className="w-5 h-5 text-slate-400 group-hover:text-cyan-500 mb-1" />
+                      <span className="text-[10px] font-bold text-slate-500 group-hover:text-cyan-600">
+                        {uploadingImage ? 'Uploading...' : 'Upload Files'}
+                      </span>
+                    </label>
+                  </div> 
+
+                  {/* Image Gallery Preview */}
+                  {imagesInput.trim() && (
+                    <div className="flex flex-wrap gap-2 mb-3 max-h-32 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-800">
+                      {imagesInput.split(',').map(s => s.trim()).filter(Boolean).map((url, idx) => (
+                        <div key={idx} className="relative group w-14 h-14 rounded-lg overflow-hidden border border-white/20 shadow-sm">
+                          <img src={resolveImage(url)} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const urls = imagesInput.split(',').map(s => s.trim()).filter(Boolean);
+                              const filtered = urls.filter((_, i) => i !== idx);
+                              setImagesInput(filtered.join(', '));
+                            }}
+                            className="absolute inset-0 bg-rose-500/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                          >
+                            <X className="w-4 h-4 text-white" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <input
                     type="text"
-                    placeholder="http://img1.jpg, http://img2.jpg"
+                    placeholder="Separate URLs with commas (e.g. http://img1.jpg, http://img2.jpg)"
                     value={imagesInput}
                     onChange={(e) => setImagesInput(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500 text-xs text-slate-500"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500 text-[10px] text-slate-500"
                   />
                 </div>
 
@@ -467,7 +495,7 @@ const ProductManager = () => {
                               ))}
                             </select>
                             {currentMap?.image && (
-                              <img src={currentMap.image} className="w-8 h-8 rounded-md object-cover mt-1 border border-cyan-500/30" />
+                              <img src={resolveImage(currentMap.image)} className="w-8 h-8 rounded-md object-cover mt-1 border border-cyan-500/30" />
                             )}
                           </div>
                         );

@@ -52,20 +52,25 @@ export const getActiveOffers = async () => {
 
 export const resolveImage = (path) => {
   if (!path) return "";
-  if (path.startsWith("http") && !path.includes("localhost:5000")) return path;
   
-  const baseUrl = "https://ecommerce-73js.onrender.com";
-  
-  // If it's an absolute localhost URL from old DB state, swap it
-  if (path.includes("localhost:5000")) {
-    return path.replace("http://localhost:5000", baseUrl);
+  const baseUrl = API.defaults.baseURL?.replace(/\/api\/?$/, '') || "http://localhost:5000";
+
+  // If path is already an absolute URL
+  if (path.startsWith("http")) {
+    // If it's a localhost URL and we have a different baseUrl (production), swap it
+    if (path.includes("localhost:5000") && !baseUrl.includes("localhost:5000")) {
+      return path.replace("http://localhost:5000", baseUrl);
+    }
+    // If it's already absolute (e.g. cloud storage or correct localhost), return as is
+    return path;
   }
   
-  // If it's a relative path
+  // If it's a relative path starting with /
   if (path.startsWith("/")) {
     return `${baseUrl}${path}`;
   }
   
+  // For any other relative path
   return `${baseUrl}/${path}`;
 };
 

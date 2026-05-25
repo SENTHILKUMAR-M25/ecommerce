@@ -13,6 +13,7 @@ import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
 import { ProtectedRoute, AdminRoute } from './router/ProtectedRoutes';
 import OrderInvoice from './pages/Common/InvoicePage';
+import ShippingPolicy from './components/common/ShippingPolicy';
 
 // Lazy Loaded Pages
 const Home = lazy(() => import('./pages/User/Home'));
@@ -115,6 +116,11 @@ function App() {
                     <Route path="/orders" element={
                       <MainLayout>
                         <OrdersHistory />
+                      </MainLayout>
+                    } />
+                    <Route path='/policy' element={
+                      <MainLayout>
+                        <ShippingPolicy />
                       </MainLayout>
                     } />
                     <Route path="/order/invoice/:id" element={<OrderInvoice />} />
