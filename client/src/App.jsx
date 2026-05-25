@@ -14,6 +14,7 @@ import AdminLayout from './layouts/AdminLayout';
 import { ProtectedRoute, AdminRoute } from './router/ProtectedRoutes';
 import OrderInvoice from './pages/Common/InvoicePage';
 import ShippingPolicy from './components/common/ShippingPolicy';
+import AdminSubCategories from './pages/Admin/AdminSubCategories';
 
 // Lazy Loaded Pages
 const Home = lazy(() => import('./pages/User/Home'));
@@ -37,7 +38,6 @@ const UserManager = lazy(() => import('./pages/Admin/UserManager'));
 const AuditLogs = lazy(() => import('./pages/Admin/AuditLogs'));
 const CouponManager = lazy(() => import('./pages/Admin/CouponManager'));
 const OffersPage = lazy(() => import('./pages/Admin/OfferPage'));
-// const OrderInvoice = lazy(() => import('./pages/Common/InvoicePage'));
 
 function App() {
   return (
@@ -141,6 +141,11 @@ function App() {
                     <Route path="/admin/categories" element={
                       <AdminLayout>
                         <CategoryManager />
+                      </AdminLayout>
+                    } />
+                    <Route path="/admin/subcategories" element={
+                      <AdminLayout>
+                        <AdminSubCategories />
                       </AdminLayout>
                     } />
                     <Route path="/admin/orders" element={

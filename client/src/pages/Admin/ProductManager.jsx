@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
-  addAdminProduct, 
-  editAdminProduct, 
-  deleteAdminProduct, 
-  fetchAdminCategories 
+import {
+  addAdminProduct,
+  editAdminProduct,
+  deleteAdminProduct,
+  fetchAdminSubCategories,
+  fetchAdminCategories
 } from '../../redux/slices/adminSlice';
 import { fetchProducts } from '../../redux/slices/productSlice';
 import { useToast } from '../../components/common/ToastContext';
@@ -21,7 +22,7 @@ const ProductManager = () => {
   const { toast } = useToast();
 
   const { products, loading } = useSelector((state) => state.products);
-  const { categories, actionLoading } = useSelector((state) => state.admin);
+  const { categories, subcategories, actionLoading } = useSelector((state) => state.admin);
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -32,26 +33,28 @@ const ProductManager = () => {
   const [compareAtPrice, setCompareAtPrice] = useState('');
   const [stock, setStock] = useState('');
   const [category, setCategory] = useState('');
+  const [subcategory, setSubcategory] = useState('');
   const [description, setDescription] = useState('');
   const [imagesInput, setImagesInput] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
-  
+
   // Custom Dynamic Variants Color / Size Lists
   const [colorsInput, setColorsInput] = useState('Black, Silver, Blue');
   const [sizesInput, setSizesInput] = useState('S, M, L');
   const [colorMap, setColorMap] = useState([]); // [{ color: 'Red', image: 'url' }]
 
   useEffect(() => {
-    dispatch(fetchProducts({ limit: 100 })); // load all catalog items for editing
+    dispatch(fetchProducts({ limit: 100 }));
     dispatch(fetchAdminCategories());
+    dispatch(fetchAdminSubCategories());
   }, [dispatch]);
-
   const resetForm = () => {
     setName('');
     setPrice('');
     setCompareAtPrice('');
     setStock('');
     setCategory('');
+    setSubcategory('');
     setDescription('');
     setImagesInput('');
     setUploadingImage(false);
@@ -76,17 +79,18 @@ const ProductManager = () => {
     setCompareAtPrice(p.compareAtPrice ? p.compareAtPrice.toString() : '');
     setStock(p.stock.toString());
     setCategory(p.category?._id || '');
+    setSubcategory(p.subcategory?._id || '');
     setDescription(p.description);
     setImagesInput(p.images.join(', '));
-    
+
     // Parse variants back to inputs
     const colorVar = p.variants.find(v => v.name.toLowerCase() === 'color');
     const sizeVar = p.variants.find(v => v.name.toLowerCase() === 'size');
-    
+
     setColorsInput(colorVar ? colorVar.options.join(', ') : '');
     setSizesInput(sizeVar ? sizeVar.options.join(', ') : '');
     setColorMap(p.colorImages || []);
-    
+
     setShowModal(true);
   };
 
@@ -126,6 +130,7 @@ const ProductManager = () => {
       compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
       stock: Number(stock),
       category,
+      subcategory,
       description,
       images,
       variants,
@@ -151,7 +156,7 @@ const ProductManager = () => {
   const handleImageUpload = async (e) => {
     const files = e.target.files;
     if (files.length === 0) return;
-    
+
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
       formData.append('images', files[i]);
@@ -162,7 +167,7 @@ const ProductManager = () => {
       const { data } = await API.post('/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      
+
       const newUrls = data.data.map(url => `${SERVER_BASE}${url}`);
       setImagesInput(prev => prev ? `${prev}, ${newUrls.join(', ')}` : newUrls.join(', '));
       toast('Images uploaded successfully', 'success');
@@ -173,6 +178,9 @@ const ProductManager = () => {
     }
   };
 
+  const filteredSubcategories = subcategories.filter(
+    (s) => s.category?._id === category
+  );
   const handleDelete = async (productId) => {
     if (!window.confirm('Are you absolutely sure you want to delete this catalog product? This is permanent.')) {
       return;
@@ -263,13 +271,12 @@ const ProductManager = () => {
                     {/* Stock level details */}
                     <td className="py-1 sm:py-3.5 px-0 sm:px-4 sm:table-cell flex items-center justify-between sm:justify-start">
                       <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase mr-2">Inventory</span>
-                      <span className={`font-bold px-2.5 py-1 rounded-full text-[10px] ${
-                        p.stock > 10
+                      <span className={`font-bold px-2.5 py-1 rounded-full text-[10px] ${p.stock > 10
                           ? 'bg-emerald-500/10 text-emerald-500'
                           : p.stock > 0
-                          ? 'bg-amber-500/10 text-amber-500'
-                          : 'bg-rose-500/10 text-rose-500'
-                      }`}>
+                            ? 'bg-amber-500/10 text-amber-500'
+                            : 'bg-rose-500/10 text-rose-500'
+                        }`}>
                         {p.stock > 0 ? `${p.stock} Units` : 'Out of Stock'}
                       </span>
                     </td>
@@ -305,7 +312,7 @@ const ProductManager = () => {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
-          
+
           <div className="relative glass-panel bg-white dark:bg-slate-950 border border-white/10 rounded-[2.5rem] w-full max-w-xl max-h-[90vh] overflow-y-auto p-8 shadow-2xl z-50 animate-fadeIn space-y-6">
             {/* Modal header */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-85 pb-4">
@@ -347,7 +354,28 @@ const ProductManager = () => {
                     ))}
                   </select>
                 </div>
+                {/* Subcategory */}
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">
+                    Subcategory
+                  </span>
 
+                  <select
+                    value={subcategory}
+                    onChange={(e) => setSubcategory(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
+                  >
+                    <option value="">
+                      Select Subcategory
+                    </option>
+
+                    {filteredSubcategories.map((sub) => (
+                      <option key={sub._id} value={sub._id}>
+                        {sub.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 {/* Stock limit */}
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-slate-400">Available Stock *</span>
@@ -415,7 +443,7 @@ const ProductManager = () => {
                 {/* Image URLs or Upload */}
                 <div className="space-y-1 sm:col-span-2">
                   <span className="text-[10px] uppercase font-bold text-slate-400">Product Images</span>
-                   <div className="flex gap-3 mb-3">
+                  <div className="flex gap-3 mb-3">
                     <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl py-4 hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer group">
                       <input
                         type="file"
@@ -430,7 +458,7 @@ const ProductManager = () => {
                         {uploadingImage ? 'Uploading...' : 'Upload Files'}
                       </span>
                     </label>
-                  </div> 
+                  </div>
 
                   {/* Image Gallery Preview */}
                   {imagesInput.trim() && (
@@ -438,7 +466,7 @@ const ProductManager = () => {
                       {imagesInput.split(',').map(s => s.trim()).filter(Boolean).map((url, idx) => (
                         <div key={idx} className="relative group w-14 h-14 rounded-lg overflow-hidden border border-white/20 shadow-sm">
                           <img src={resolveImage(url)} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
-                          <button 
+                          <button
                             type="button"
                             onClick={() => {
                               const urls = imagesInput.split(',').map(s => s.trim()).filter(Boolean);
@@ -474,7 +502,7 @@ const ProductManager = () => {
                       {colorsInput.split(',').map(s => s.trim()).filter(Boolean).map(color => {
                         const currentMap = colorMap.find(m => m.color === color);
                         const productImages = imagesInput.split(',').map(img => img.trim()).filter(Boolean);
-                        
+
                         return (
                           <div key={color} className="flex flex-col gap-1.5 p-3 rounded-xl bg-white dark:bg-slate-800/50 border border-white/10">
                             <span className="font-bold text-[10px] text-slate-400">{color} Showcase image:</span>

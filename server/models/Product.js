@@ -30,10 +30,19 @@ const productSchema = new mongoose.Schema({
     type: Number,
     min: [0, 'Compare price cannot be negative']
   },
+  // category: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'Category',
+  //   required: [true, 'Product category is required']
+  // },
   category: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category',
-    required: [true, 'Product category is required']
+    ref: 'Category'
+  },
+
+  subcategory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SubCategory'
   },
   images: [{
     type: String,

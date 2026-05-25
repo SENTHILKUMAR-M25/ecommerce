@@ -37,6 +37,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard className="w-5 h-5" /> },
     { name: 'Products', path: '/admin/products', icon: <ShoppingBag className="w-5 h-5" /> },
     { name: 'Categories', path: '/admin/categories', icon: <FolderTree className="w-5 h-5" /> },
+    { name: 'Sub Categories', path: '/admin/subcategories', icon: <FolderTree className="w-5 h-5" /> },
     { name: 'Orders', path: '/admin/orders', icon: <ClipboardList className="w-5 h-5" /> },
     { name: 'Offers', path: '/admin/offers', icon: <Ticket className="w-5 h-5" /> },
     { name: 'Coupons', path: '/admin/coupons', icon: <Ticket className="w-5 h-5" /> },
@@ -47,9 +48,9 @@ const AdminLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#080a13] flex transition-colors duration-300">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-64 glass-panel border-r border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 p-4 fixed h-full z-30 backdrop-blur-md">
-        <div className="flex items-center space-x-2 px-3 py-4 mb-6">
-          <span className="text-2xl font-black tracking-wider gradient-text font-sans">AURA</span>
+      <aside className="hidden lg:flex lg:flex-col lg:w-70 glass-panel border-r border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 p-4 fixed h-full z-30 backdrop-blur-md">
+        <div className="flex items-center space-x-2 px-2 py-4 mb-6">
+          <span className="text-2xl font-black tracking-wider gradient-text font-sans">SUMAIYA'99</span>
           <span className="text-[10px] uppercase tracking-widest bg-cyan-500/10 text-cyan-500 px-2 py-0.5 rounded-full font-bold">Admin</span>
         </div>
 
@@ -189,7 +190,7 @@ const AdminLayout = ({ children }) => {
         </header>
 
         {/* Content Portal */}
-        <main className="flex-grow p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-grow p-6 lg:p-16 text-lg max-w-8xl w-full mx-auto">
           {children}
         </main>
       </div>

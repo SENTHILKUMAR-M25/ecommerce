@@ -69,6 +69,7 @@ export const getProducts = async (req, res, next) => {
     const totalProducts = await Product.countDocuments(query);
     const products = await Product.find(query)
       .populate('category', 'name slug')
+      .populate('subcategory', 'name slug')
       .sort(sortBy)
       .skip(skip)
       .limit(pageLimit);
@@ -115,7 +116,9 @@ export const getProducts = async (req, res, next) => {
 // @access  Public
 export const getProductBySlug = async (req, res, next) => {
   try {
-    const product = await Product.findOne({ slug: req.params.slug }).populate('category', 'name slug');
+    const product = await Product.findOne({ slug: req.params.slug })
+      .populate('category', 'name slug')
+      .populate('subcategory', 'name slug');
 
     if (!product) {
       res.status(404);
@@ -153,7 +156,7 @@ export const getProductBySlug = async (req, res, next) => {
 // @route   POST /api/products
 // @access  Private/Admin
 export const addProduct = async (req, res, next) => {
-  const { name, description, price, compareAtPrice, category, images, stock, variants, isFeatured, isTrending } = req.body;
+  const { name, description, price, compareAtPrice, category, subcategory, images, stock, variants, colorImages, isFeatured, isTrending } = req.body;
 
   try {
     if (!category) {
@@ -177,9 +180,11 @@ export const addProduct = async (req, res, next) => {
       price,
       compareAtPrice,
       category: categoryDoc._id,
+      subcategory: subcategory || null,
       images: images || ['/placeholder.jpg'],
       stock: stock || 0,
       variants: variants || [],
+      colorImages: colorImages || [],
       isFeatured: !!isFeatured,
       isTrending: !!isTrending
     });

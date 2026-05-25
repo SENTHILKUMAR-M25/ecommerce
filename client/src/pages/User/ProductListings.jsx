@@ -222,8 +222,8 @@ const ProductListings = () => {
 
       {/* ── ACTIVE FILTER CHIPS ── */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-2 mb-5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Active:</span>
+        <div className="flex flex-wrap text-lg items-center gap-2 mb-5">
+          <span className="text-[15px] font-bold uppercase tracking-widest text-slate-400">Active:</span>
 
           {filters.keyword && (
             <span className="inline-flex items-center gap-1.5 text-xs bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 px-3 py-1 rounded-full font-semibold">
@@ -298,7 +298,7 @@ const ProductListings = () => {
           )}
 
           {/* Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {loading ? (
               Array(LIMIT).fill(0).map((_, i) => <SkeletonCard key={i} />)
             ) : products.length === 0 ? (

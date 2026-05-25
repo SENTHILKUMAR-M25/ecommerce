@@ -62,13 +62,13 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 glass-panel border-b border-white/10 dark:border-white/5 bg-white/70 dark:bg-slate-950/75 backdrop-blur-md transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 glass-panel border-b py-4 border-white/10 dark:border-white/5 bg-white/70 dark:bg-slate-950/75 backdrop-blur-md transition-all duration-300">
+      <div className="max-w-8xl  mx-auto px-4 sm:px-6 lg:px-26">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link to="/" className="text-2xl font-extrabold tracking-wider gradient-text font-sans">
-              AURA
+              SUMAIYA'99
             </Link>
           </div>
 

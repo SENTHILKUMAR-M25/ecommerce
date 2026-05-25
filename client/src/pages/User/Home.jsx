@@ -166,7 +166,7 @@ const Home = () => {
     <div className="space-y-20 pb-16">
 
       {/* 1. HERO BANNER with Background Image Carousel */}
-      <section className="relative rounded-3xl overflow-hidden shadow-2xl  flex items-center">
+      <section className="relative h-[77vh] rounded-3xl overflow-hidden shadow-2xl  flex items-center">
 
         {/* Background image crossfade layers */}
         {slides.map((slide, i) => (
@@ -252,22 +252,6 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Carousel Controls — Left / Right arrows */}
-        {/* <button
-          onClick={() => setSlideIndex(prev => (prev - 1 + slides.length) % slides.length)}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-white/10 hover:bg-white/25 backdrop-blur-sm text-white border border-white/20 transition-all"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <button
-          onClick={() => setSlideIndex(prev => (prev + 1) % slides.length)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-white/10 hover:bg-white/25 backdrop-blur-sm text-white border border-white/20 transition-all"
-          aria-label="Next slide"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button> */}
-
         {/* Dot Indicators */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
           {slides.map((_, i) => (
@@ -338,7 +322,7 @@ const Home = () => {
             ? Array(6).fill(0).map((_, i) => (
               <div key={i} className="min-w-[260px] h-64 rounded-3xl skeleton-shimmer flex-shrink-0" />
             ))
-            : (categories || []).map((c) => (
+            : (categories || []).filter(c => !c.parent).map((c) => (
               <Link
                 key={c._id}
                 to={`/products?category=${c.slug}`}

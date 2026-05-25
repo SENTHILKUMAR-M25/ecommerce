@@ -14,7 +14,12 @@ const categorySchema = new mongoose.Schema({
     lowercase: true
   },
   description: { type: String },
-  image: { type: String }
+  image: { type: String },
+  parent: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    default: null
+  }
 }, {
   timestamps: true
 });

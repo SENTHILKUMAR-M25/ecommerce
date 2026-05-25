@@ -17,7 +17,7 @@ const slugify = (text) => {
 // @access  Public
 export const getCategories = async (req, res, next) => {
   try {
-    const categories = await Category.find({});
+    const categories = await Category.find({}).populate('parent', 'name');
     res.json({
       success: true,
       data: categories
@@ -31,7 +31,7 @@ export const getCategories = async (req, res, next) => {
 // @route   POST /api/categories
 // @access  Private/Admin
 export const addCategory = async (req, res, next) => {
-  const { name, description, image } = req.body;
+  const { name, description, image, parent } = req.body;
 
   try {
     const categoryExists = await Category.findOne({ name });
@@ -45,7 +45,8 @@ export const addCategory = async (req, res, next) => {
       name,
       slug: slugify(name),
       description,
-      image: image || '/category-placeholder.jpg'
+      image: image || '/category-placeholder.jpg',
+      parent: parent || null
     });
 
     // Log Activity
@@ -69,7 +70,7 @@ export const addCategory = async (req, res, next) => {
 // @route   PUT /api/categories/:id
 // @access  Private/Admin
 export const updateCategory = async (req, res, next) => {
-  const { name, description, image } = req.body;
+  const { name, description, image, parent } = req.body;
 
   try {
     let category = await Category.findById(req.params.id);
@@ -85,6 +86,7 @@ export const updateCategory = async (req, res, next) => {
     }
     if (description) category.description = description;
     if (image) category.image = image;
+    if (parent !== undefined) category.parent = parent || null;
 
     category = await category.save();
 

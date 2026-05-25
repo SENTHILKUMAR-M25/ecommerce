@@ -134,10 +134,20 @@ const ProductCard = ({ product, offer }) => {
       {/* ── BODY ── */}
       <div className="flex flex-col flex-1 p-2.5 sm:p-3.5 gap-2">
 
-        {/* Category */}
-        <span className="text-[9px] sm:text-[10px] text-cyan-600 dark:text-cyan-400 uppercase font-bold tracking-widest truncate">
-          {product.category?.name}
-        </span>
+        {/* Category + Subcategory breadcrumb */}
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="text-[9px] sm:text-[10px] text-cyan-600 dark:text-cyan-400 uppercase font-bold tracking-widest truncate">
+            {product.category?.name}
+          </span>
+          {product.subcategory?.name && (
+            <>
+              <span className="text-[9px] text-slate-300 dark:text-slate-600">›</span>
+              <span className="text-[9px] sm:text-[10px] text-indigo-500 bg-indigo-500/10 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider truncate">
+                {product.subcategory.name}
+              </span>
+            </>
+          )}
+        </div>
 
         {/* Product name */}
         <Link

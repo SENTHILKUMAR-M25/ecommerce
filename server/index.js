@@ -20,6 +20,8 @@ import couponRoutes from './routes/couponRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import offerRoutes from './routes/offerRoutes.js';
+import subCategoryRoutes from './routes/subCategoryRoutes.js';
+
 // Load Environment Variables
 dotenv.config();
 
@@ -52,7 +54,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: [
-      "https://ecommerce-eight-virid-50.vercel.app",
+      "http://localhost:5173",
       // "https://ecommerce-eight-virid-50.vercel.app",
 
     ],
@@ -110,6 +112,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/offers', offerRoutes);
+app.use('/api/subcategories', subCategoryRoutes)
 // Static Uploads Folder with CORS allowed for PDF generations
 const __dirname = path.resolve();
 app.use('/uploads', (req, res, next) => {

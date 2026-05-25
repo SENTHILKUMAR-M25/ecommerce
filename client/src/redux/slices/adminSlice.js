@@ -100,6 +100,82 @@ export const deleteAdminCategory = createAsyncThunk(
   }
 );
 
+// FETCH
+export const fetchAdminSubCategories = createAsyncThunk(
+  'admin/fetchSubCategories',
+  async (_, { rejectWithValue }) => {
+    try {
+
+      const response = await API.get('/subcategories');
+
+      return response.data.data;
+
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
+
+
+// ADD
+export const addAdminSubCategory = createAsyncThunk(
+  'admin/addSubCategory',
+  async (subData, { rejectWithValue }) => {
+    try {
+
+      const response = await API.post('/subcategories', subData);
+
+      return response.data.data;
+
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
+
+
+// EDIT
+export const editAdminSubCategory = createAsyncThunk(
+  'admin/editSubCategory',
+  async ({ id, subData }, { rejectWithValue }) => {
+    try {
+
+      const response = await API.put(
+        `/subcategories/${id}`,
+        subData
+      );
+
+      return response.data.data;
+
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
+
+
+// DELETE
+export const deleteAdminSubCategory = createAsyncThunk(
+  'admin/deleteSubCategory',
+  async (id, { rejectWithValue }) => {
+    try {
+
+      await API.delete(`/subcategories/${id}`);
+
+      return id;
+
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 // Thunks for Product Management
 export const addAdminProduct = createAsyncThunk(
   'admin/addProduct',
@@ -214,6 +290,7 @@ const initialState = {
   analytics: null,
   users: [],
   categories: [],
+  subcategories: [],
   orders: [],
   logs: [],
   coupons: [],
@@ -266,6 +343,52 @@ const adminSlice = createSlice({
       .addCase(deleteAdminCategory.fulfilled, (state, action) => {
         state.actionLoading = false;
         state.categories = state.categories.filter(c => c._id !== action.payload);
+      })
+      // FETCH
+      .addCase(fetchAdminSubCategories.fulfilled, (state, action) => {
+
+        state.loading = false;
+        state.subcategories = action.payload;
+
+      })
+
+
+
+
+      // ADD
+      .addCase(addAdminSubCategory.fulfilled, (state, action) => {
+
+        state.actionLoading = false;
+        state.subcategories.push(action.payload);
+
+      })
+
+
+
+
+      // EDIT
+      .addCase(editAdminSubCategory.fulfilled, (state, action) => {
+
+        state.actionLoading = false;
+
+        state.subcategories =
+          state.subcategories.map((s) =>
+            s._id === action.payload._id
+              ? action.payload
+              : s
+          );
+
+      })
+      // DELETE
+      .addCase(deleteAdminSubCategory.fulfilled, (state, action) => {
+
+        state.actionLoading = false;
+
+        state.subcategories =
+          state.subcategories.filter(
+            (s) => s._id !== action.payload
+          );
+
       })
       // Product Management
       .addCase(addAdminProduct.fulfilled, (state) => {

@@ -28,6 +28,7 @@ const CategoryManager = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState('');
+  const [parent, setParent] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ const CategoryManager = () => {
     setName('');
     setDescription('');
     setImage('');
+    setParent('');
     setUploadingImage(false);
     setEditingId(null);
   };
@@ -52,6 +54,7 @@ const CategoryManager = () => {
     setName(c.name);
     setDescription(c.description);
     setImage(c.image);
+    setParent(c.parent?._id || c.parent || '');
     setShowModal(true);
   };
 
@@ -65,7 +68,13 @@ const CategoryManager = () => {
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const imgUrl = image.trim() || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=300&q=80'; // fallback architecture image
 
-    const catPayload = { name, slug, description, image: imgUrl };
+    const catPayload = { 
+      name, 
+      slug, 
+      description, 
+      image: imgUrl,
+      parent: parent || null
+    };
 
     try {
       if (editingId) {
@@ -167,9 +176,16 @@ const CategoryManager = () => {
                   <div className="flex justify-between items-start">
                     <h3 className="font-black text-lg text-slate-800 dark:text-white truncate flex-1">{c.name}</h3>
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-cyan-500 bg-cyan-500/10 px-2 py-0.5 rounded-full inline-block">
-                    {c.slug}
-                  </p>
+                  <div className="flex gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-cyan-500 bg-cyan-500/10 px-2 py-0.5 rounded-full inline-block">
+                      {c.slug}
+                    </p>
+                    {c.parent && (
+                      <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full inline-block">
+                        Sub of: {c.parent.name || '...'}
+                      </p>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-medium">
                     {c.description}
                   </p>
@@ -227,6 +243,21 @@ const CategoryManager = () => {
                     onChange={(e) => setName(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
                   />
+                </div>
+                
+                {/* Parent Category */}
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-450">Parent Category (Optional)</span>
+                  <select
+                    value={parent}
+                    onChange={(e) => setParent(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
+                  >
+                    <option value="">None (Top Level)</option>
+                    {categories.filter(cat => cat._id !== editingId).map((cat) => (
+                      <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Thumbnail Image URL or Upload */}

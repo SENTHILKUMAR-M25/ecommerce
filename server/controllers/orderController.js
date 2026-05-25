@@ -3,7 +3,7 @@ import Product from '../models/Product.js';
 import Coupon from '../models/Coupon.js';
 import User from '../models/User.js';
 import CouponUsage from '../models/CouponUsage.js';
-
+import sendWhatsAppMessage  from "../utils/sendWhatsApp.js"
 // @desc    Create a new order
 // @route   POST /api/orders
 // @access  Private
@@ -135,21 +135,67 @@ export const createOrder = async (req, res, next) => {
     const totalPriceBackend = Math.round((itemsPriceBackend + shippingPriceBackend + taxPriceBackend - discountPriceBackend) * 100) / 100;
 
     // 3. Create the order in database using backend recalculated prices
-    const order = await Order.create({
-      user: req.user._id,
-      orderItems,
-      shippingAddress,
-      paymentMethod,
-      paymentInfo: paymentMethod === 'Card'
-        ? { status: 'Succeeded', transactionId: paymentInfo?.transactionId || 'ch_mock_' + Math.random().toString(36).substr(2, 9) }
-        : { status: 'Pending' },
-      itemsPrice: itemsPriceBackend,
-      taxPrice: taxPriceBackend,
-      shippingPrice: shippingPriceBackend,
-      discountPrice: discountPriceBackend,
-      totalPrice: totalPriceBackend,
-      couponApplied: couponModel === 'Coupon' ? couponAppliedId : undefined
-    });
+    // const order = await Order.create({
+    //   user: req.user._id,
+    //   orderItems,
+    //   shippingAddress,
+    //   paymentMethod,
+    //   paymentInfo: paymentMethod === 'Card'
+    //     ? { status: 'Succeeded', transactionId: paymentInfo?.transactionId || 'ch_mock_' + Math.random().toString(36).substr(2, 9) }
+    //     : { status: 'Pending' },
+    //   itemsPrice: itemsPriceBackend,
+    //   taxPrice: taxPriceBackend,
+    //   shippingPrice: shippingPriceBackend,
+    //   discountPrice: discountPriceBackend,
+    //   totalPrice: totalPriceBackend,
+    //   couponApplied: couponModel === 'Coupon' ? couponAppliedId : undefined
+    // });
+
+
+    // 3. Create the order in database using backend recalculated prices
+const order = await Order.create({
+  user: req.user._id,
+  orderItems,
+  shippingAddress,
+  paymentMethod,
+  paymentInfo: paymentMethod === 'Card'
+    ? {
+        status: 'Succeeded',
+        transactionId:
+          paymentInfo?.transactionId ||
+          'ch_mock_' + Math.random().toString(36).substr(2, 9)
+      }
+    : { status: 'Pending' },
+
+  itemsPrice: itemsPriceBackend,
+  taxPrice: taxPriceBackend,
+  shippingPrice: shippingPriceBackend,
+  discountPrice: discountPriceBackend,
+  totalPrice: totalPriceBackend,
+  couponApplied: couponModel === 'Coupon'
+    ? couponAppliedId
+    : undefined
+});
+
+// SEND WHATSAPP MESSAGE
+await sendWhatsAppMessage({
+  customerName: req.user.name,
+  orderId: order._id,
+  paymentMethod: order.paymentMethod,
+  totalPrice: order.totalPrice,
+  shippingAddress: order.shippingAddress,
+  orderItems: order.orderItems
+});
+
+// 4. Record Coupon/Referral Usage
+if (couponAppliedId) {
+  await CouponUsage.create({
+    user: req.user._id,
+    coupon: couponAppliedId,
+    couponModel,
+    order: order._id
+  });
+}
 
     // 4. Record Coupon/Referral Usage
     if (couponAppliedId) {
