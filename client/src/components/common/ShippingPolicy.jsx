@@ -90,28 +90,7 @@ const ShippingPolicy = () => {
           ))}
         </div>
 
-        {/* Bottom Section */}
-        <div className="mt-16 glass-panel rounded-3xl p-8 md:p-10 flex flex-col lg:flex-row items-center justify-between gap-8">
-          
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-3 mb-4">
-              <MapPinned className="text-cyan-500" size={28} />
-              <h3 className="text-2xl font-bold">
-                Nationwide Delivery Coverage
-              </h3>
-            </div>
-
-            <p className="text-[rgb(var(--text-secondary))] leading-relaxed">
-              We currently ship products across India using trusted courier
-              partners. Delivery timelines may vary during festivals, weather
-              conditions, or high-demand seasons.
-            </p>
-          </div>
-
-          <button className="px-7 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 via-indigo-500 to-violet-500 text-white font-semibold shadow-xl hover:scale-105 transition duration-300">
-            Track Order
-          </button>
-        </div>
+     
       </div>
     </section>
   );

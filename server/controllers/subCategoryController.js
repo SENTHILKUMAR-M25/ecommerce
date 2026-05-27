@@ -37,6 +37,28 @@ export const getSubCategories = async (req, res, next) => {
 
 
 
+// GET SUBCATEGORIES BY CATEGORY
+export const getSubCategoriesByCategory = async (req, res, next) => {
+  try {
+    const { categoryId } = req.params;
+
+    const subcategories = await SubCategory
+      .find({ category: categoryId })
+      .populate('category', 'name');
+
+    res.json({
+      success: true,
+      data: subcategories
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
 // ADD SUBCATEGORY
 export const addSubCategory = async (req, res, next) => {
 

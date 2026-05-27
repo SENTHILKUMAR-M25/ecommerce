@@ -38,16 +38,29 @@ const ProductManager = () => {
   const [imagesInput, setImagesInput] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  // Custom Dynamic Variants Color / Size Lists
   const [colorsInput, setColorsInput] = useState('Black, Silver, Blue');
-  const [sizesInput, setSizesInput] = useState('S, M, L');
-  const [colorMap, setColorMap] = useState([]); // [{ color: 'Red', image: 'url' }]
+  const [sizes, setSizes] = useState([]); // [{ size, price, stock }]
+  const [colorMap, setColorMap] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
+  const addSizeRow = () => setSizes(prev => [...prev, { size: '', price: '', stock: '' }]);
+  const removeSizeRow = (i) => setSizes(prev => prev.filter((_, idx) => idx !== i));
+  const updateSizeRow = (i, field, val) => setSizes(prev => prev.map((row, idx) => idx === i ? { ...row, [field]: val } : row));
+
+  const PRODUCTS_PER_PAGE = 10;
   useEffect(() => {
     dispatch(fetchProducts({ limit: 100 }));
     dispatch(fetchAdminCategories());
     dispatch(fetchAdminSubCategories());
   }, [dispatch]);
+  useEffect(() => {
+    const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
+
+    // If current page exceeds available pages
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages || 1);
+    }
+  }, [products, currentPage]);
   const resetForm = () => {
     setName('');
     setPrice('');
@@ -59,7 +72,7 @@ const ProductManager = () => {
     setImagesInput('');
     setUploadingImage(false);
     setColorsInput('Black, Silver, Blue');
-    setSizesInput('S, M, L');
+    setSizes([]);
     setColorMap([]);
     setEditingId(null);
   };
@@ -83,12 +96,9 @@ const ProductManager = () => {
     setDescription(p.description);
     setImagesInput(p.images.join(', '));
 
-    // Parse variants back to inputs
     const colorVar = p.variants.find(v => v.name.toLowerCase() === 'color');
-    const sizeVar = p.variants.find(v => v.name.toLowerCase() === 'size');
-
     setColorsInput(colorVar ? colorVar.options.join(', ') : '');
-    setSizesInput(sizeVar ? sizeVar.options.join(', ') : '');
+    setSizes((p.sizes || []).map(s => ({ size: s.size, price: s.price.toString(), stock: s.stock.toString() })));
     setColorMap(p.colorImages || []);
 
     setShowModal(true);
@@ -101,6 +111,20 @@ const ProductManager = () => {
       return;
     }
 
+    // Validate sizes
+    if (sizes.length > 0) {
+      const sizeNames = sizes.map(s => s.size.trim()).filter(Boolean);
+      if (new Set(sizeNames).size !== sizeNames.length) {
+        toast('Duplicate size names are not allowed.', 'error');
+        return;
+      }
+      for (const s of sizes) {
+        if (!s.size.trim()) { toast('Each size must have a name.', 'error'); return; }
+        if (!s.price || Number(s.price) <= 0) { toast(`Price for size "${s.size}" must be greater than 0.`, 'error'); return; }
+        if (Number(s.stock) < 0) { toast(`Stock for size "${s.size}" cannot be negative.`, 'error'); return; }
+      }
+    }
+
     // Process image URLs
     const images = imagesInput
       ? imagesInput.split(',').map(s => s.trim()).filter(Boolean)
@@ -109,17 +133,15 @@ const ProductManager = () => {
     // Build variants structure
     const variants = [];
     if (colorsInput.trim()) {
-      variants.push({
-        name: 'Color',
-        options: colorsInput.split(',').map(s => s.trim()).filter(Boolean)
-      });
+      variants.push({ name: 'Color', options: colorsInput.split(',').map(s => s.trim()).filter(Boolean) });
     }
-    if (sizesInput.trim()) {
-      variants.push({
-        name: 'Size',
-        options: sizesInput.split(',').map(s => s.trim()).filter(Boolean)
-      });
+    if (sizes.length > 0) {
+      variants.push({ name: 'Size', options: sizes.map(s => s.size.trim()).filter(Boolean) });
     }
+
+    const sizesPayload = sizes
+      .filter(s => s.size.trim())
+      .map(s => ({ size: s.size.trim(), price: Number(s.price), stock: Number(s.stock) }));
 
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -134,20 +156,21 @@ const ProductManager = () => {
       description,
       images,
       variants,
+      sizes: sizesPayload,
       colorImages: colorMap
     };
 
     try {
       if (editingId) {
         await dispatch(editAdminProduct({ id: editingId, productData: productPayload })).unwrap();
-        toast('Catalog product updated successfully!', 'success');
+        toast(' product updated successfully!', 'success');
       } else {
         await dispatch(addAdminProduct(productPayload)).unwrap();
         toast('New product added to catalog successfully!', 'success');
       }
       setShowModal(false);
       resetForm();
-      dispatch(fetchProducts({ limit: 100 })); // reload catalog
+      dispatch(fetchProducts({ limit: 10 })); // reload catalog
     } catch (err) {
       toast(err || 'Failed to persist product changes.', 'error');
     }
@@ -194,14 +217,24 @@ const ProductManager = () => {
       toast(err || 'Failed to delete product.', 'error');
     }
   };
+  const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
+
+  const paginatedProducts = products.slice(
+    (currentPage - 1) * PRODUCTS_PER_PAGE,
+    currentPage * PRODUCTS_PER_PAGE
+  );
 
   return (
-    <div className="space-y-6 pb-16">
+    <div className="space-y-6 pb-16 bg-slate-200 dark:bg-slate-900 min-h-screen">
       {/* Header controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Product Catalog Editor</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage active listings, inventory quantities, and variants selection.</p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Product Catalog Editor
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Manage active listings, inventory quantities, and variants selection.
+          </p>
         </div>
 
         <button
@@ -214,6 +247,7 @@ const ProductManager = () => {
       </div>
 
       {/* Main product catalog list table */}
+      {/* ================= MAIN PRODUCT TABLE ================= */}
       {loading ? (
         <LoadingSpinner />
       ) : products.length === 0 ? (
@@ -221,83 +255,120 @@ const ProductManager = () => {
           No catalog listings created. Click "Add New Product" to populate items.
         </div>
       ) : (
-        <div className="glass-panel border border-white/10 rounded-[2rem] overflow-hidden shadow-lg p-0 sm:p-6 bg-white/50 dark:bg-slate-900/40 backdrop-blur-md">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="hidden sm:table-header-group">
-                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 uppercase tracking-wider font-bold">
-                  <th className="py-3 px-4">Item Details</th>
-                  <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4">Price</th>
-                  <th className="py-3 px-4">Stock level</th>
-                  <th className="py-3 px-4 text-center">Operations</th>
+        <div className="glass-panel border border-white/10 rounded-[2rem] overflow-hidden shadow-lg bg dark:bg-slate-900/40 backdrop-blur-md">
+
+          {/* ===== Desktop Table ===== */}
+          <div className="hidden xl:block overflow-x-auto">
+            <table className="w-full min-w-[1100px] text-left border-collapse">
+
+              {/* Table Head */}
+              <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                <tr className="text-slate-500 dark:text-slate-400 uppercase tracking-wider text-sm font-black">
+                  <th className="py-5 px-6">Product</th>
+                  <th className="py-5 px-6">Category</th>
+                  <th className="py-5 px-6">Price</th>
+                  <th className="py-5 px-6">Stock</th>
+                  <th className="py-5 px-6 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 block sm:table-row-group">
-                {products.map((p) => (
-                  <tr key={p._id} className="hover:bg-slate-100/30 dark:hover:bg-slate-900/30 transition-colors block sm:table-row p-4 sm:p-0">
-                    {/* Item details */}
-                    <td className="py-1 sm:py-3.5 px-0 sm:px-4 flex items-center gap-3 sm:table-cell mb-2 sm:mb-0">
-                      <div className="flex items-center gap-3 w-full">
-                        <img src={resolveImage(p.images[0])} alt={p.name}
-                          onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/80x80/1e293b/94a3b8?text=IMG`; }}
-                          className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl object-cover border border-white/10 shadow-sm" />
-                        <div className="truncate flex-1">
-                          <p className="font-bold truncate text-sm sm:text-xs text-slate-800 dark:text-slate-100">{p.name}</p>
-                          <p className="text-[10px] text-slate-400 truncate uppercase tracking-tighter">{p.slug}</p>
+
+              {/* Table Body */}
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+
+                {paginatedProducts.map((p) => (
+                  <tr
+                    key={p._id}
+                    className="hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all"
+                  >
+
+                    {/* Product */}
+                    <td className="py-5 px-6">
+                      <div className="flex items-center gap-4 min-w-[300px]">
+
+                        <img
+                          src={resolveImage(p.images[0])}
+                          alt={p.name}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src =
+                              "https://placehold.co/100x100/1e293b/94a3b8?text=IMG";
+                          }}
+                          className="w-16 h-16 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+                        />
+
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base font-bold text-slate-800 dark:text-white truncate">
+                            {p.name}
+                          </h3>
+
+                          <p className="text-sm text-slate-400 truncate mt-1">
+                            {p.slug}
+                          </p>
                         </div>
                       </div>
                     </td>
 
-                    {/* Category details */}
-                    <td className="py-1 sm:py-3.5 px-0 sm:px-4 sm:table-cell flex items-center justify-between sm:justify-start">
-                      <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase mr-2">Category</span>
-                      <span className="font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg sm:bg-transparent sm:px-0">
-                        {p.category?.name || 'Unassigned'}
+                    {/* Category */}
+                    <td className="py-5 px-6">
+                      <span className="inline-flex items-center px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                        {p.category?.name || "Unassigned"}
                       </span>
                     </td>
 
-                    {/* Prices */}
-                    <td className="py-1 sm:py-3.5 px-0 sm:px-4 sm:table-cell flex items-center justify-between sm:justify-start">
-                      <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase mr-2">Price</span>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <span className="font-black text-cyan-600 dark:text-cyan-400 text-sm">₹{p.price.toFixed(2)}</span>
-                        {p.compareAtPrice && p.compareAtPrice > p.price && (
-                          <span className="text-[10px] text-slate-400 line-through">₹{p.compareAtPrice.toFixed(2)}</span>
-                        )}
+                    {/* Price */}
+                    <td className="py-5 px-6">
+                      <div className="flex flex-col">
+                        <span className="text-lg font-black text-cyan-600 dark:text-cyan-400">
+                          ₹{p.price.toFixed(2)}
+                        </span>
+
+                        {p.compareAtPrice &&
+                          p.compareAtPrice > p.price && (
+                            <span className="text-sm text-slate-400 line-through">
+                              ₹{p.compareAtPrice.toFixed(2)}
+                            </span>
+                          )}
                       </div>
                     </td>
 
-                    {/* Stock level details */}
-                    <td className="py-1 sm:py-3.5 px-0 sm:px-4 sm:table-cell flex items-center justify-between sm:justify-start">
-                      <span className="sm:hidden text-[10px] font-bold text-slate-400 uppercase mr-2">Inventory</span>
-                      <span className={`font-bold px-2.5 py-1 rounded-full text-[10px] ${p.stock > 10
-                          ? 'bg-emerald-500/10 text-emerald-500'
-                          : p.stock > 0
-                            ? 'bg-amber-500/10 text-amber-500'
-                            : 'bg-rose-500/10 text-rose-500'
-                        }`}>
-                        {p.stock > 0 ? `${p.stock} Units` : 'Out of Stock'}
+                    {/* Stock */}
+                    <td className="py-5 px-6">
+                      <span
+                        className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap ${p.stock > 10
+                            ? "bg-emerald-500/10 text-emerald-500"
+                            : p.stock > 0
+                              ? "bg-amber-500/10 text-amber-500"
+                              : "bg-rose-500/10 text-rose-500"
+                          }`}
+                      >
+                        {p.stock > 0
+                          ? `${p.stock} Units`
+                          : "Out of Stock"}
                       </span>
                     </td>
 
-                    {/* Operations */}
-                    <td className="py-2 sm:py-3.5 px-0 sm:px-4 sm:table-cell mt-2 sm:mt-0 border-t sm:border-0 border-slate-100 dark:border-slate-800 pt-3 sm:pt-0">
-                      <div className="flex justify-end sm:justify-center items-center gap-2">
+                    {/* Actions */}
+                    <td className="py-5 px-6">
+                      <div className="flex items-center justify-center gap-3">
+
+                        {/* Edit */}
                         <button
                           onClick={() => handleOpenEditModal(p)}
-                          className="flex-1 sm:flex-none flex items-center justify-center gap-2 p-2 sm:p-1.5 rounded-xl sm:rounded-full border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-cyan-500 dark:hover:text-cyan-400 hover:bg-cyan-500/10 transition-all text-[10px] font-bold uppercase sm:normal-case"
+                          className="h-11 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-cyan-500 hover:text-white hover:border-cyan-500 transition-all"
                         >
                           <Edit2 className="w-4 h-4" />
-                          <span className="sm:hidden">Edit</span>
+                          Edit
                         </button>
+
+                        {/* Delete */}
                         <button
                           onClick={() => handleDelete(p._id)}
-                          className="flex-1 sm:flex-none flex items-center justify-center gap-2 p-2 sm:p-1.5 rounded-xl sm:rounded-full border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-all text-[10px] font-bold uppercase sm:normal-case"
+                          className="h-11 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all"
                         >
                           <Trash2 className="w-4 h-4" />
-                          <span className="sm:hidden">Delete</span>
+                          Delete
                         </button>
+
                       </div>
                     </td>
                   </tr>
@@ -305,265 +376,558 @@ const ProductManager = () => {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
 
-      {/* Add / Edit product modal overlay */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
+          {/* ===== Mobile / Tablet Cards ===== */}
+          <div className="xl:hidden p-4 sm:p-6 space-y-4">
 
-          <div className="relative glass-panel bg-white dark:bg-slate-950 border border-white/10 rounded-[2.5rem] w-full max-w-xl max-h-[90vh] overflow-y-auto p-8 shadow-2xl z-50 animate-fadeIn space-y-6">
-            {/* Modal header */}
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-85 pb-4">
-              <h2 className="text-xl font-extrabold flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-cyan-500" />
-                <span>{editingId ? 'Edit Product Card' : 'Add New Product Card'}</span>
-              </h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
+            {paginatedProducts.map((p) => (
+              <div
+                key={p._id}
+                className="rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 sm:p-5 shadow-sm"
+              >
 
-            {/* Modal fields form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                {/* Product Name */}
-                <div className="space-y-1 sm:col-span-2">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Product Name *</span>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Quantum Gaming Headset"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
+                {/* Top */}
+                <div className="flex gap-4">
+
+                  <img
+                    src={resolveImage(p.images[0])}
+                    alt={p.name}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src =
+                        "https://placehold.co/100x100/1e293b/94a3b8?text=IMG";
+                    }}
+                    className="w-20 h-20 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
                   />
-                </div>
 
-                {/* Categories */}
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Category Selection *</span>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
-                  >
-                    {categories.map((c) => (
-                      <option key={c._id} value={c._id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-                {/* Subcategory */}
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">
-                    Subcategory
-                  </span>
+                  <div className="flex-1 min-w-0">
 
-                  <select
-                    value={subcategory}
-                    onChange={(e) => setSubcategory(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
-                  >
-                    <option value="">
-                      Select Subcategory
-                    </option>
+                    <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-white line-clamp-2">
+                      {p.name}
+                    </h3>
 
-                    {filteredSubcategories.map((sub) => (
-                      <option key={sub._id} value={sub._id}>
-                        {sub.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {/* Stock limit */}
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Available Stock *</span>
-                  <input
-                    type="number"
-                    required
-                    placeholder="25"
-                    value={stock}
-                    onChange={(e) => setStock(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
-                  />
+                    <p className="text-xs text-slate-400 mt-1 truncate">
+                      {p.slug}
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+
+                      <span className="inline-flex items-center px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        {p.category?.name || "Unassigned"}
+                      </span>
+
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${p.stock > 10
+                            ? "bg-emerald-500/10 text-emerald-500"
+                            : p.stock > 0
+                              ? "bg-amber-500/10 text-amber-500"
+                              : "bg-rose-500/10 text-rose-500"
+                          }`}
+                      >
+                        {p.stock > 0
+                          ? `${p.stock} Units`
+                          : "Out of Stock"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Price */}
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Price ($) *</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    placeholder="99.99"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
-                  />
-                </div>
+                <div className="mt-5 flex items-center justify-between">
 
-                {/* Compare Price */}
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Compare Price ($)</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="120.00"
-                    value={compareAtPrice}
-                    onChange={(e) => setCompareAtPrice(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
-                  />
-                </div>
+                  <div>
+                    <p className="text-2xl font-black text-cyan-600 dark:text-cyan-400">
+                      ₹{p.price.toFixed(2)}
+                    </p>
 
-                {/* Colors variants */}
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-450">Colors Options (comma split)</span>
-                  <input
-                    type="text"
-                    placeholder="Black, Silver, Blue"
-                    value={colorsInput}
-                    onChange={(e) => setColorsInput(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
-                  />
-                </div>
-
-                {/* Sizes variants */}
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-450">Sizes Options (comma split)</span>
-                  <input
-                    type="text"
-                    placeholder="S, M, L"
-                    value={sizesInput}
-                    onChange={(e) => setSizesInput(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
-                  />
-                </div>
-
-                {/* Image URLs or Upload */}
-                <div className="space-y-1 sm:col-span-2">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Product Images</span>
-                  <div className="flex gap-3 mb-3">
-                    <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl py-4 hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer group">
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        disabled={uploadingImage}
-                        className="hidden"
-                      />
-                      <Plus className="w-5 h-5 text-slate-400 group-hover:text-cyan-500 mb-1" />
-                      <span className="text-[10px] font-bold text-slate-500 group-hover:text-cyan-600">
-                        {uploadingImage ? 'Uploading...' : 'Upload Files'}
-                      </span>
-                    </label>
+                    {p.compareAtPrice &&
+                      p.compareAtPrice > p.price && (
+                        <p className="text-sm text-slate-400 line-through">
+                          ₹{p.compareAtPrice.toFixed(2)}
+                        </p>
+                      )}
                   </div>
 
-                  {/* Image Gallery Preview */}
-                  {imagesInput.trim() && (
-                    <div className="flex flex-wrap gap-2 mb-3 max-h-32 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-800">
-                      {imagesInput.split(',').map(s => s.trim()).filter(Boolean).map((url, idx) => (
-                        <div key={idx} className="relative group w-14 h-14 rounded-lg overflow-hidden border border-white/20 shadow-sm">
-                          <img src={resolveImage(url)} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const urls = imagesInput.split(',').map(s => s.trim()).filter(Boolean);
-                              const filtered = urls.filter((_, i) => i !== idx);
-                              setImagesInput(filtered.join(', '));
-                            }}
-                            className="absolute inset-0 bg-rose-500/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
-                          >
-                            <X className="w-4 h-4 text-white" />
-                          </button>
+                  {/* Actions */}
+                  <div className="flex gap-2">
+
+                    <button
+                      onClick={() => handleOpenEditModal(p)}
+                      className="h-11 w-11 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-cyan-500 hover:text-white hover:border-cyan-500 transition-all"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(p._id)}
+                      className="h-11 w-11 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ===== Pagination ===== */}
+          {totalPages > 1 && (
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
+
+              {/* Left */}
+              <div className="text-sm text-slate-500 font-medium text-center lg:text-left">
+                Showing page{" "}
+                <span className="font-bold text-cyan-500">
+                  {currentPage}
+                </span>{" "}
+                of{" "}
+                <span className="font-bold">
+                  {totalPages}
+                </span>
+              </div>
+
+              {/* Pagination */}
+              <div className="flex items-center flex-wrap justify-center gap-2">
+
+                {/* Prev */}
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => {
+                    setCurrentPage((prev) => prev - 1);
+
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
+                  }}
+                  className="h-11 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-bold disabled:opacity-40 hover:bg-cyan-500 hover:text-white hover:border-cyan-500 transition-all"
+                >
+                  Prev
+                </button>
+
+                {/* Numbers */}
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setCurrentPage(i + 1);
+
+                      window.scrollTo({
+                        top: 0,
+                        behavior: "smooth",
+                      });
+                    }}
+                    className={`w-11 h-11 rounded-2xl text-sm font-black transition-all ${currentPage === i + 1
+                        ? "bg-gradient-to-r from-cyan-500 to-indigo-500 text-white shadow-lg shadow-cyan-500/20"
+                        : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+
+                {/* Next */}
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => {
+                    setCurrentPage((prev) => prev + 1);
+
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
+                  }}
+                  className="h-11 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-bold disabled:opacity-40 hover:bg-cyan-500 hover:text-white hover:border-cyan-500 transition-all"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      {/* ///////// */}
+      {/* Add / Edit product modal overlay */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm"
+            onClick={() => setShowModal(false)}
+          ></div>
+
+          {/* Modal */}
+          <div className="relative z-50 w-full max-w-7xl max-h-[95vh] overflow-hidden rounded-[2rem] border border-white/10 bg-white dark:bg-slate-950 shadow-2xl flex flex-col">
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 sm:px-8 py-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500 to-indigo-500 flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white">
+                    {editingId ? "Edit Product" : "CreateProduct Name  Product"}
+                  </h2>
+
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    Manage catalog details, variants, inventory and product media
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-11 h-11 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            {/* Scroll Body */}
+            <div className="overflow-y-auto px-5 sm:px-8 py-6">
+
+              <form onSubmit={handleSubmit} className="space-y-8">
+
+                {/* ================= BASIC DETAILS ================= */}
+                <div className="space-y-5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                      Basic Information
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+                    {/* Product Name */}
+                    <div className="lg:col-span-2 space-y-2">
+                      <label className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                        Product Name *
+                      </label>
+
+                      <input
+                        type="text"
+                        required
+                        placeholder="Quantum Gaming Headset"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full h-14 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white text-slate-900 dark:text-white dark:bg-slate-900 px-5 text-base focus:ring-2 focus:ring-cyan-500 outline-none"
+                      />
+                    </div>
+
+                    {/* Category */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                        Category *
+                      </label>
+
+                      <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="w-full h-14 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white text-slate-900 dark:text-white dark:bg-slate-900 px-5 text-base focus:ring-2 focus:ring-cyan-500 outline-none"
+                      >
+                        {categories.map((c) => (
+                          <option key={c._id} value={c._id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Subcategory */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                        Subcategory
+                      </label>
+
+                      <select
+                        value={subcategory}
+                        onChange={(e) => setSubcategory(e.target.value)}
+                        className="w-full h-14 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white text-slate-900 dark:text-white dark:bg-slate-900 px-5 text-base focus:ring-2 focus:ring-cyan-500 outline-none"
+                      >
+                        <option value="">Select Subcategory</option>
+
+                        {filteredSubcategories.map((sub) => (
+                          <option key={sub._id} value={sub._id}>
+                            {sub.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Stock */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                        Available Stock *
+                      </label>
+
+                      <input
+                        type="number"
+                        required
+                        placeholder="25"
+                        value={stock}
+                        onChange={(e) => setStock(e.target.value)}
+                        className="w-full h-14 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white text-slate-900 dark:text-white dark:bg-slate-900 px-5 text-base focus:ring-2 focus:ring-cyan-500 outline-none"
+                      />
+                    </div>
+
+                    {/* Price */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                        Price ₹ *
+                      </label>
+
+                      <input
+                        type="number"
+                        step="0.01"
+                        required
+                        placeholder="99.99"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        className="w-full h-14 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white text-slate-900 dark:text-white dark:bg-slate-900 px-5 text-base focus:ring-2 focus:ring-cyan-500 outline-none"
+                      />
+                    </div>
+
+                    {/* Compare Price */}
+                    <div className="space-y-2 lg:col-span-2">
+                      <label className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                        Compare Price ₹
+                      </label>
+
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="120.00"
+                        value={compareAtPrice}
+                        onChange={(e) => setCompareAtPrice(e.target.value)}
+                        className="w-full h-14 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white text-slate-900 dark:text-white dark:bg-slate-900 px-5 text-base focus:ring-2 focus:ring-cyan-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ================= VARIANTS ================= */}
+                  <div className="space-y-5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                      Product Variants
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+                    {/* Colors */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                        Colors
+                      </label>
+
+                      <input
+                        type="text"
+                        placeholder="Black, Silver, Blue"
+                        value={colorsInput}
+                        onChange={(e) => setColorsInput(e.target.value)}
+                        className="w-full h-14 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white text-slate-900 dark:text-white dark:bg-slate-900 px-5 text-base  focus:ring-2 focus:ring-cyan-500 outline-none"
+                      />
+                    </div>
+
+                    {/* Sizes — Dynamic Builder */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-bold text-slate-600 dark:text-slate-300">Sizes &amp; Pricing</label>
+                        <button
+                          type="button"
+                          onClick={addSizeRow}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 text-cyan-500 text-xs font-bold hover:bg-cyan-500/20 transition-all"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Add Size
+                        </button>
+                      </div>
+
+                      {sizes.length > 0 && (
+                        <div className="flex gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 px-1">
+                          <span className="w-20">Size</span>
+                          <span className="flex-1">Price (₹)</span>
+                          <span className="flex-1">Stock</span>
+                          <span className="w-11"></span>
                         </div>
-                      ))}
+                      )}
+
+                      {sizes.length === 0 && (
+                        <p className="text-xs text-slate-400 italic">No sizes added. Click "Add Size" to begin.</p>
+                      )}
+
+                      <div className="space-y-2">
+                        {sizes.map((row, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              placeholder="S"
+                              value={row.size}
+                              onChange={(e) => updateSizeRow(i, 'size', e.target.value)}
+                              className="w-20 h-11 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3 text-sm focus:ring-2 focus:ring-cyan-500 outline-none"
+                            />
+                            <input
+                              type="number"
+                              placeholder="Price"
+                              min="1"
+                              value={row.price}
+                              onChange={(e) => updateSizeRow(i, 'price', e.target.value)}
+                              className="flex-1 h-11 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3 text-sm focus:ring-2 focus:ring-cyan-500 outline-none"
+                            />
+                            <input
+                              type="number"
+                              placeholder="Stock"
+                              min="0"
+                              value={row.stock}
+                              onChange={(e) => updateSizeRow(i, 'stock', e.target.value)}
+                              className="flex-1 h-11 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3 text-sm focus:ring-2 focus:ring-cyan-500 outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeSizeRow(i)}
+                              className="w-11 h-11 rounded-xl flex items-center justify-center border border-rose-200 dark:border-rose-900 text-rose-400 hover:bg-rose-500 hover:text-white transition-all"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ================= IMAGES ================= */}
+                <div className="space-y-5">
+
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                      Product Images
+                    </h3>
+                  </div>
+
+                  {/* Upload Box */}
+                  <label className="w-full border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-[2rem] p-10 flex flex-col items-center justify-center text-center cursor-pointer hover:border-cyan-500 hover:bg-cyan-500/5 transition-all">
+
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                      className="hidden"
+                    />
+
+                    <Plus className="w-10 h-10 text-cyan-500 mb-3" />
+
+                    <h4 className="text-lg font-bold text-slate-700 dark:text-white">
+                      {uploadingImage ? "Uploading Images..." : "Upload Product Images"}
+                    </h4>
+
+                    <p className="text-sm text-slate-500 mt-1">
+                      Drag & drop or click to browse files
+                    </p>
+                  </label>
+
+                  {/* Preview */}
+                  {imagesInput.trim() && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {imagesInput
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean)
+                        .map((url, idx) => (
+                          <div
+                            key={idx}
+                            className="relative  rounded-2xl overflow-hidden"
+                          >
+                            <img
+                              src={resolveImage(url)}
+                              alt=""
+                              className="w-20 h-20 object-cover"
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const urls = imagesInput
+                                  .split(",")
+                                  .map((s) => s.trim())
+                                  .filter(Boolean);
+
+                                const filtered = urls.filter((_, i) => i !== idx);
+
+                                setImagesInput(filtered.join(", "));
+                              }}
+                              className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all "
+                            >
+                              <X className="w-6 h-6 text-black dark:text-white" />
+                            </button>
+                          </div>
+                        ))}
                     </div>
                   )}
 
+                  {/* Manual URL */}
                   <input
                     type="text"
-                    placeholder="Separate URLs with commas (e.g. http://img1.jpg, http://img2.jpg)"
+                    placeholder="Paste image URLs separated by commas"
                     value={imagesInput}
                     onChange={(e) => setImagesInput(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500 text-[10px] text-slate-500"
-                  />
+                    className="w-full h-14 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-black dark:text-white px-5 text-base focus:ring-2 focus:ring-cyan-500 outline-none"/>
                 </div>
 
-                {/* Color Visual Mapping (New Section) */}
-                {colorsInput.trim() && (
-                  <div className="space-y-3 sm:col-span-2 bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Sparkles className="w-3.5 h-3.5 text-cyan-500" />
-                      <span className="text-[10px] uppercase font-black tracking-widest text-slate-450">Color Visual Mapping</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {colorsInput.split(',').map(s => s.trim()).filter(Boolean).map(color => {
-                        const currentMap = colorMap.find(m => m.color === color);
-                        const productImages = imagesInput.split(',').map(img => img.trim()).filter(Boolean);
+                {/* ================= DESCRIPTION ================= */}
+                <div className="space-y-5">
 
-                        return (
-                          <div key={color} className="flex flex-col gap-1.5 p-3 rounded-xl bg-white dark:bg-slate-800/50 border border-white/10">
-                            <span className="font-bold text-[10px] text-slate-400">{color} Showcase image:</span>
-                            <select
-                              value={currentMap?.image || ''}
-                              onChange={(e) => {
-                                const newMap = colorMap.filter(m => m.color !== color);
-                                if (e.target.value) {
-                                  newMap.push({ color, image: e.target.value });
-                                }
-                                setColorMap(newMap);
-                              }}
-                              className="w-full bg-slate-50 dark:bg-slate-900 rounded-lg py-1 px-2 text-[10px] border border-slate-100 dark:border-slate-800"
-                            >
-                              <option value="">No Mapping (Show Main)</option>
-                              {productImages.map((img, idx) => (
-                                <option key={idx} value={img}>Image {idx + 1} ({img.split('/').pop()})</option>
-                              ))}
-                            </select>
-                            {currentMap?.image && (
-                              <img src={resolveImage(currentMap.image)} className="w-8 h-8 rounded-md object-cover mt-1 border border-cyan-500/30" />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                      Product Description
+                    </h3>
                   </div>
-                )}
 
-                {/* Product Description */}
-                <div className="space-y-1 sm:col-span-2">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Product description *</span>
                   <textarea
                     required
-                    placeholder="Provide a detailed, rich feature description..."
-                    rows={4}
+                    rows={6}
+                    placeholder="Provide a detailed product description..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 p-3 focus:ring-1 focus:ring-cyan-500"
+                    className="w-full rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-5 text-base focus:ring-2 focus:ring-cyan-500 outline-none"
                   ></textarea>
                 </div>
-              </div>
 
-              {/* Action buttons */}
-              <div className="flex justify-end gap-2.5 pt-4 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 border rounded-full font-bold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="px-8 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-bold hover:bg-cyan-500 hover:text-white transition-all disabled:opacity-55"
-                >
-                  {editingId ? 'Save Changes' : 'Create Product'}
-                </button>
-              </div>
-            </form>
+                {/* ================= FOOTER ================= */}
+                <div className="sticky bottom-0 bg-white dark:bg-slate-950 pt-5 pb-2 flex flex-col sm:flex-row justify-end gap-3 border-t border-slate-200 dark:border-slate-800">
+
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="h-14 px-8 rounded-2xl border border-slate-300 text-slate-900 hover:bg-red-300 dark:border-slate-700 dark:text-white  font-bold text-base"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={actionLoading}
+                    className="h-14 px-10 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-black text-base hover:scale-[1.02] transition-all disabled:opacity-60"
+                  >
+                    {editingId ? "Save Changes" : "Create Product"}
+                  </button>
+                </div>
+
+              </form>
+            </div>
           </div>
         </div>
       )}

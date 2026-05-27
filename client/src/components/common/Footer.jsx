@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Globe, Mail, MessageCircle, ArrowRight, Heart } from 'lucide-react';
-import {motion} from "framer-motion"
-import { FaWhatsapp, FaInstagram  } from "react-icons/fa";
+import {  Mail,  Navigation } from 'lucide-react';
+import { motion } from "framer-motion"
+import { FaWhatsapp, FaInstagram,  } from "react-icons/fa";
 const Footer = () => {
   return (
     <footer className="bg-slate-950 text-slate-400 border-t border-white/5 pt-16 pb-8 transition-colors duration-300">
@@ -11,22 +11,12 @@ const Footer = () => {
           {/* Brand & Description */}
           <div className="space-y-4">
             <Link to="/" className="text-2xl font-extrabold tracking-wider text-white">
-              SUMAIYA
+              SUMAIYA'99
             </Link>
             <p className="text-sm leading-relaxed text-slate-400">
               Curating high-end digital gears, active apparel, and futuristic living decors tailored to redefine your daily lifestyle.
             </p>
-            <div className="flex space-x-4 pt-2">
-              <a  className="hover:text-white transition-colors" aria-label="Website">
-                <FaWhatsapp  className="w-5 h-5" />
-              </a>
-              <a href="#" className="hover:text-white transition-colors" aria-label="Email">
-                <Mail className="w-5 h-5" />
-              </a>
-              <a href="#" className="hover:text-white transition-colors" aria-label="Community">
-                <FaInstagram className="w-5 h-5" />
-              </a>
-            </div>
+
           </div>
 
           {/* Quick links */}
@@ -85,12 +75,29 @@ const Footer = () => {
 
           {/* Newsletter */}
           <div className="space-y-4">
-            <h3 className="text-white font-bold text-sm tracking-wider uppercase">Stay Updated</h3>
+            <h2 className="text-white font-bold text-sm tracking-wider uppercase">Stay Updated</h2>
+            <h3 className="text-sm leading-relaxed text-slate-400"> SUMAIYA'99</h3>
             <p className="text-sm text-slate-400">
-              Subscribe to unlock early access, seasonal launches, and members-only pricing.
+              G.D.S.Complex (Upstairs) Post Office Road,
+              4
+              Kodaikanal - 624 101.
             </p>
-            
+            <div className="flex space-x-4 pt-2">
+              <a className="hover:text-white transition-colors" aria-label="Website">
+                <FaWhatsapp className="w-5 h-5" />
+              </a>
+              <a href="#" className="hover:text-white transition-colors" aria-label="Email">
+                <Mail className="w-5 h-5" />
+              </a>
+              <a href="#" className="hover:text-white transition-colors" aria-label="Community">
+                <FaInstagram className="w-5 h-5" />
+              </a>
+              <a href="https://maps.app.goo.gl/UZX58NuAc3dMN4Hg7" target="_blank"  className="hover:text-white transition-colors" aria-label="Community">
+                <Navigation className="w-5 h-5" />
+              </a>
+            </div>
           </div>
+
         </div>
 
         {/* Legal & Attribution */}

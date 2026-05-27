@@ -8,11 +8,10 @@ export const placeOrder = createAsyncThunk(
   async (orderData, { rejectWithValue, dispatch }) => {
     try {
       const response = await API.post('/orders', orderData);
-      // Clean Cart upon success
       dispatch(clearCart());
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to place order');
     }
   }
 );
@@ -24,7 +23,7 @@ export const fetchMyOrders = createAsyncThunk(
       const response = await API.get('/orders/my-orders');
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to fetch orders');
     }
   }
 );
@@ -36,7 +35,7 @@ export const fetchOrderById = createAsyncThunk(
       const response = await API.get(`/orders/${orderId}`);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to fetch order');
     }
   }
 );
@@ -48,7 +47,7 @@ export const cancelMyOrder = createAsyncThunk(
       const response = await API.put(`/orders/${orderId}/cancel`);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to cancel order');
     }
   }
 );

@@ -1,4 +1,3 @@
-// routes/subCategoryRoutes.js
 
 import express from 'express';
 
@@ -6,6 +5,7 @@ const router = express.Router();
 
 import {
   getSubCategories,
+  getSubCategoriesByCategory,
   addSubCategory,
   updateSubCategory,
   deleteSubCategory
@@ -16,6 +16,9 @@ import { protect, adminOnly  } from '../middleware/authMiddleware.js';
 router.route('/')
   .get(getSubCategories)
   .post(protect, adminOnly, addSubCategory);
+
+router.route('/category/:categoryId')
+  .get(getSubCategoriesByCategory);
 
 router.route('/:id')
   .put(protect, adminOnly, updateSubCategory)

@@ -8,7 +8,7 @@ import {
 } from '../../redux/slices/adminSlice';
 import { useToast } from '../../components/common/ToastContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { Plus, Edit2, Trash2, X, FolderMinus } from 'lucide-react';
+import { Plus, Edit2, Trash2, X,  } from 'lucide-react';
 import API from '../../services/api';
 
 // Derive server origin from API baseURL (strips /api suffix)
@@ -132,7 +132,7 @@ const CategoryManager = () => {
       {/* Header controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Category Manager</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Category Manager</h1>
           <p className="text-sm text-slate-500 mt-1">Manage active catalog categories, descriptions, and thumbnails.</p>
         </div>
 
@@ -221,8 +221,8 @@ const CategoryManager = () => {
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
           
           <div className="relative glass-panel bg-white dark:bg-slate-950 border border-white/10 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl z-50 animate-fadeIn space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-85 pb-4">
-              <h2 className="text-xl font-extrabold">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+              <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
                 {editingId ? 'Edit Category card' : 'Create Category card'}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
@@ -234,35 +234,35 @@ const CategoryManager = () => {
               <div className="space-y-3.5 text-xs">
                 {/* Category Name */}
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-450">Category Name *</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-300">Category Name *</span>
                   <input
                     type="text"
                     required
                     placeholder="Minimalist Home Decor"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-1 focus:ring-cyan-500"
                   />
                 </div>
                 
                 {/* Parent Category */}
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-450">Parent Category (Optional)</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-300">Parent Category (Optional)</span>
                   <select
                     value={parent}
                     onChange={(e) => setParent(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 text-slate-900 dark:text-white focus:ring-1 focus:ring-cyan-500"
                   >
-                    <option value="">None (Top Level)</option>
+                    <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">None (Top Level)</option>
                     {categories.filter(cat => cat._id !== editingId).map((cat) => (
-                      <option key={cat._id} value={cat._id}>{cat.name}</option>
+                      <option key={cat._id} value={cat._id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{cat.name}</option>
                     ))}
                   </select>
                 </div>
 
                 {/* Thumbnail Image URL or Upload */}
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-450">Thumbnail Image</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-300">Thumbnail Image</span>
                   <div className="flex gap-2 mb-2">
                     <input
                       type="file"
@@ -278,15 +278,15 @@ const CategoryManager = () => {
                     placeholder="https://unsplash.com/photo-123"
                     value={image}
                     onChange={(e) => setImage(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500 text-xs text-slate-500"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-900/40 px-3.5 py-2 focus:ring-1 focus:ring-cyan-500 text-xs text-slate-700 dark:text-slate-300 placeholder:text-slate-500"
                   />
                   {/* Live Image Preview */}
                   {image && (
-                    <div className="mt-2 w-full aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
+                    <div className="mt-2  rounded-xl overflow-hidden   dark:border-slate-800  dark:bg-slate-900">
                       <img
                         src={image}
                         alt="Preview"
-                        className="w-full h-full object-cover"
+                        className="w-20 h-20 object-cover"
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />
                     </div>
@@ -295,14 +295,14 @@ const CategoryManager = () => {
 
                 {/* Description */}
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-450">Category Description *</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-300">Category Description *</span>
                   <textarea
                     required
                     placeholder="Provide a descriptive section summary..."
                     rows={4}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-80 bg-white/40 dark:bg-slate-900/40 p-3 focus:ring-1 focus:ring-cyan-500"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-900/40 p-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-1 focus:ring-cyan-500"
                   ></textarea>
                 </div>
               </div>

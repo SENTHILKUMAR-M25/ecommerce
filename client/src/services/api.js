@@ -12,10 +12,10 @@ const API = axios.create({
   withCredentials: false,
 });
 
-// Request Interceptor
+
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('aura_token');
+    const token = localStorage.getItem("aura_token");
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -26,24 +26,28 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor
+
+// Response Interceptor (FIXED)
 API.interceptors.response.use(
   (response) => response,
-
   (error) => {
-    const message =
-      error.response?.data?.message ||
-      error.message ||
-      'Something went wrong';
+    const status = error.response?.status;
 
-    // Auto logout if token expired
-    if (error.response?.status === 401) {
-      localStorage.removeItem('aura_token');
+    if (status === 401) {
+      localStorage.removeItem("aura_token");
+      localStorage.removeItem("aura_user");
+      console.warn("🔒 Token expired or invalid - Session Cleared");
+      
+      // Redirect to login only if we are NOT already on login/register pages
+      const isAuthPage = window.location.pathname.includes('/login') || window.location.pathname.includes('/register');
+      if (!isAuthPage) {
+        window.location.href = '/login?expired=true';
+      }
     }
 
-    return Promise.reject(message);
+    // ❗ IMPORTANT: return FULL error object
+    return Promise.reject(error);
   }
-  
 );
 
 export const getActiveOffers = async () => {

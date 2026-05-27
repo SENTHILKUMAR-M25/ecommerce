@@ -2,7 +2,6 @@ import Product from '../models/Product.js';
 import Category from '../models/Category.js';
 import AdminActivityLog from '../models/AdminActivityLog.js';
 import Offer from '../models/OfferSchema.js';
-
 // Helper slugifier
 const slugify = (text) => {
   return text
@@ -19,7 +18,7 @@ const slugify = (text) => {
 // @access  Public
 export const getProducts = async (req, res, next) => {
   try {
-    const { keyword, category, priceMin, priceMax, ratingMin, sort, page, limit } = req.query;
+    const { keyword, category, subcategory, priceMin, priceMax, ratingMin, sort, page, limit } = req.query;
 
     const query = {};
 
@@ -37,6 +36,15 @@ export const getProducts = async (req, res, next) => {
       const cat = await Category.findOne({ $or: [{ slug: category }, { name: category }] });
       if (cat) {
         query.category = cat._id;
+      }
+    }
+
+    // Subcategory Filter
+    if (subcategory) {
+      const SubCategory = mongoose.model('SubCategory');
+      const subCat = await SubCategory.findOne({ $or: [{ slug: subcategory }, { name: subcategory }] });
+      if (subCat) {
+        query.subcategory = subCat._id;
       }
     }
 
@@ -155,8 +163,21 @@ export const getProductBySlug = async (req, res, next) => {
 // @desc    Create a product
 // @route   POST /api/products
 // @access  Private/Admin
+const validateSizes = (sizes) => {
+  if (!sizes || !sizes.length) return null;
+  const seen = new Set();
+  for (const s of sizes) {
+    if (!s.size) return 'Each size must have a name';
+    if (seen.has(s.size)) return `Duplicate size: ${s.size}`;
+    if (!s.price || s.price <= 0) return `Price for size ${s.size} must be greater than 0`;
+    if (s.stock < 0) return `Stock for size ${s.size} cannot be negative`;
+    seen.add(s.size);
+  }
+  return null;
+};
+
 export const addProduct = async (req, res, next) => {
-  const { name, description, price, compareAtPrice, category, subcategory, images, stock, variants, colorImages, isFeatured, isTrending } = req.body;
+  const { name, description, price, compareAtPrice, category, subcategory, images, stock, variants, colorImages, isFeatured, isTrending, brand, brandPrices, sizes } = req.body;
 
   try {
     if (!category) {
@@ -173,6 +194,12 @@ export const addProduct = async (req, res, next) => {
 
     const slug = slugify(name) + '-' + Math.floor(1000 + Math.random() * 9000);
 
+    const sizeError = validateSizes(sizes);
+    if (sizeError) {
+      res.status(400);
+      throw new Error(sizeError);
+    }
+
     const product = await Product.create({
       name,
       slug,
@@ -184,6 +211,9 @@ export const addProduct = async (req, res, next) => {
       images: images || ['/placeholder.jpg'],
       stock: stock || 0,
       variants: variants || [],
+      sizes: sizes || [],
+      brandPrices: brandPrices || [],
+      brand: brand || null,
       colorImages: colorImages || [],
       isFeatured: !!isFeatured,
       isTrending: !!isTrending
@@ -206,37 +236,139 @@ export const addProduct = async (req, res, next) => {
   }
 };
 
-// @desc    Update a product
-// @route   PUT /api/products/:id
-// @access  Private/Admin
+
+// export const updateProduct = async (req, res, next) => {
+//   try {
+//     let product = await Product.findById(req.params.id);
+
+//     if (!product) {
+//       res.status(404);
+//       throw new Error('Product not found');
+//     }
+
+//     // If a category ObjectId is provided, verify it exists
+//     if (req.body.category) {
+//       const categoryDoc = await Category.findById(req.body.category);
+//       if (!categoryDoc) {
+//         res.status(404);
+//         throw new Error(`Category not found. Please select a valid category.`);
+//       }
+//     }
+
+//     if (req.body.name) {
+//       req.body.slug = slugify(req.body.name) + '-' + Math.floor(1000 + Math.random() * 9000);
+//     }
+
+//     product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+//       new: true,
+//       runValidators: true
+//     });
+
+//     // Log Activity
+//     await AdminActivityLog.create({
+//       admin: req.user._id,
+//       action: 'UPDATE_PRODUCT',
+//       details: `Updated product: ${product.name} (${product._id})`,
+//       ipAddress: req.ip
+//     });
+
+//     res.json({
+//       success: true,
+//       data: product
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
+import mongoose from 'mongoose';
+
 export const updateProduct = async (req, res, next) => {
   try {
+
+    // ✅ Validate MongoDB ID
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid product ID'
+      });
+    }
+
     let product = await Product.findById(req.params.id);
 
     if (!product) {
-      res.status(404);
-      throw new Error('Product not found');
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
     }
 
-    // If a category ObjectId is provided, verify it exists
+    // ✅ Validate category
     if (req.body.category) {
+
+      if (!mongoose.Types.ObjectId.isValid(req.body.category)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid category ID'
+        });
+      }
+
       const categoryDoc = await Category.findById(req.body.category);
+
       if (!categoryDoc) {
-        res.status(404);
-        throw new Error(`Category not found. Please select a valid category.`);
+        return res.status(404).json({
+          success: false,
+          message: 'Category not found'
+        });
       }
     }
 
-    if (req.body.name) {
-      req.body.slug = slugify(req.body.name) + '-' + Math.floor(1000 + Math.random() * 9000);
+    // ✅ Validate sizes if provided
+    if (req.body.sizes) {
+      const sizeError = validateSizes(req.body.sizes);
+      if (sizeError) {
+        return res.status(400).json({ success: false, message: sizeError });
+      }
     }
 
-    product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
+    // ✅ Generate new slug if name changed
+    if (req.body.name) {
+      req.body.slug =
+        slugify(req.body.name) +
+        '-' +
+        Math.floor(1000 + Math.random() * 9000);
+    }
 
-    // Log Activity
+    // ✅ Prevent empty subcategory
+    if (req.body.subcategory === '') {
+      req.body.subcategory = null;
+    }
+
+    // ✅ Update product
+    product = await Product.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true
+      }
+    )
+      .populate('category', 'name slug')
+      .populate('subcategory', 'name slug');
+
+    // If request provides brandPrices or sizeOptions explicitly, make sure they're saved as arrays
+    if (req.body.brandPrices || req.body.sizes || typeof req.body.brand !== 'undefined') {
+      const updateFields = {};
+      if (req.body.brandPrices) updateFields.brandPrices = req.body.brandPrices;
+      if (req.body.sizes) updateFields.sizes = req.body.sizes;
+      if (typeof req.body.brand !== 'undefined') updateFields.brand = req.body.brand;
+
+      product = await Product.findByIdAndUpdate(req.params.id, { $set: updateFields }, { new: true, runValidators: true })
+        .populate('category', 'name slug')
+        .populate('subcategory', 'name slug');
+    }
+
+    // ✅ Log admin activity
     await AdminActivityLog.create({
       admin: req.user._id,
       action: 'UPDATE_PRODUCT',
@@ -248,14 +380,18 @@ export const updateProduct = async (req, res, next) => {
       success: true,
       data: product
     });
+
   } catch (error) {
-    next(error);
+
+    console.log('UPDATE PRODUCT ERROR:', error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
   }
 };
-
-// @desc    Delete a product
-// @route   DELETE /api/products/:id
-// @access  Private/Admin
 export const deleteProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);

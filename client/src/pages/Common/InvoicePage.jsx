@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchOrderById } from "../../redux/slices/orderSlice";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { Download, Printer, ShoppingBag, ArrowLeft, ShieldCheck } from "lucide-react";
-import { resolveImage } from "../../services/api";
+import  { resolveImage } from "../../services/api";
 
 const OrderInvoice = () => {
   const { id } = useParams();
@@ -88,7 +88,7 @@ const OrderInvoice = () => {
 
   const s = {
     page: {
-      backgroundColor: '#ffffff',
+      backgroundColor: '#fffff',
       width: '210mm',
       height: '296mm', // Slightly less than 297mm to prevent ghost pages
       margin: '0 auto',
@@ -97,7 +97,8 @@ const OrderInvoice = () => {
       fontFamily: "'Times New Roman', Times, serif",
       border: '1.5px solid #000',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      color: '#000',
     },
     header: { paddingBottom: '20px', display: 'flex', justifyContent: 'space-between', borderBottom: '1.5px solid #000', marginBottom: '25px' },
     label: { fontSize: '10px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '5px' },
@@ -235,7 +236,38 @@ const OrderInvoice = () => {
               {/* Totals: Last Page Only */}
               {idx === itemChunks.length - 1 && (
                 <div style={s.summary}>
-                  <div style={{ width: '220px' }}>
+                  <div style={{ width: '280px' }}>
+                    {/* Subtotal */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', paddingBottom: '8px', borderBottom: '1px solid #e5e7eb' }}>
+                      <span>Subtotal:</span>
+                      <span>₹{order.itemsPrice?.toFixed(2) || (order.totalPrice + order.discountPrice - order.taxPrice - order.shippingPrice).toFixed(2)}</span>
+                    </div>
+
+                    {/* Delivery Charge */}
+                    {order.shippingPrice > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', paddingTop: '8px', paddingBottom: '8px', borderBottom: '1px solid #e5e7eb' }}>
+                        <span>Delivery Charge:</span>
+                        <span>₹{order.shippingPrice.toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    {/* Offer Discount */}
+                    {order.discountPrice > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', paddingTop: '8px', paddingBottom: '8px', borderBottom: '1px solid #e5e7eb', color: '#059669' }}>
+                        <span>Offer Discount:</span>
+                        <span>-₹{order.discountPrice.toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    {/* Tax */}
+                    {order.taxPrice > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', paddingTop: '8px', paddingBottom: '8px', borderBottom: '1px solid #e5e7eb' }}>
+                        <span>Tax:</span>
+                        <span>₹{order.taxPrice.toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    {/* Total */}
                     <div style={{ borderTop: '2px solid #000', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '12px', fontWeight: 'bold' }}>TOTAL:</span>
                       <span style={{ fontSize: '30px', fontWeight: 'bold', color: '#0891b2', fontStyle: 'italic' }}>₹{order.totalPrice.toFixed(2)}</span>

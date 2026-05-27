@@ -10,31 +10,29 @@ import API from '../../services/api';
 const LIMIT = 12;
 
 /* ─── Reusable Filter Panel Content ─── */
-const FilterContent = ({ filters, categories, handleFilterChange, onClose }) => (
+const FilterContent = ({ filters, categories, subCategories, handleFilterChange, onClose }) => (
   <div className="space-y-7">
     {/* Categories */}
     <div className="space-y-3">
       <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Category</h4>
       <div className="space-y-1.5">
         <button
-          onClick={() => { handleFilterChange({ category: '' }); onClose?.(); }}
-          className={`flex items-center gap-2 text-sm w-full text-left px-3 py-2 rounded-xl transition-all ${
-            filters.category === ''
+          onClick={() => { handleFilterChange({ category: '', subCategory: '' }); onClose?.(); }}
+          className={`flex items-center gap-2 text-sm w-full text-left px-3 py-2 rounded-xl transition-all ${filters.category === ''
               ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold'
               : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400'
-          }`}
+            }`}
         >
           All Categories
         </button>
         {categories.map((c) => (
           <button
             key={c._id}
-            onClick={() => { handleFilterChange({ category: c.slug }); onClose?.(); }}
-            className={`flex items-center gap-2 text-sm w-full text-left px-3 py-2 rounded-xl transition-all ${
-              filters.category === c.slug
+            onClick={() => { handleFilterChange({ category: c.slug, subCategory: '' }); onClose?.(); }}
+            className={`flex items-center gap-2 text-sm w-full text-left px-3 py-2 rounded-xl transition-all ${filters.category === c.slug
                 ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold'
                 : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400'
-            }`}
+              }`}
           >
             {c.name}
           </button>
@@ -42,6 +40,35 @@ const FilterContent = ({ filters, categories, handleFilterChange, onClose }) => 
       </div>
     </div>
 
+    {/* Sub Categories - Only show if category is selected */}
+    {filters.category && subCategories.length > 0 && (
+      <div className="space-y-3">
+        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sub Category</h4>
+        <div className="space-y-1.5">
+          <button
+            onClick={() => { handleFilterChange({ subCategory: '' }); onClose?.(); }}
+            className={`flex items-center gap-2 text-sm w-full text-left px-3 py-2 rounded-xl transition-all ${filters.subCategory === ''
+                ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold'
+                : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400'
+              }`}
+          >
+            All Sub Categories
+          </button>
+          {subCategories.map((sc) => (
+            <button
+              key={sc._id}
+              onClick={() => { handleFilterChange({ subCategory: sc.slug }); onClose?.(); }}
+              className={`flex items-center gap-2 text-sm w-full text-left px-3 py-2 rounded-xl transition-all ${filters.subCategory === sc.slug
+                  ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold'
+                  : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400'
+                }`}
+            >
+              {sc.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
     {/* Price */}
     <div className="space-y-3">
       <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Price Range (₹)</h4>
@@ -72,11 +99,10 @@ const FilterContent = ({ filters, categories, handleFilterChange, onClose }) => 
           <button
             key={num}
             onClick={() => { handleFilterChange({ ratingMin: filters.ratingMin === num.toString() ? '' : num.toString() }); onClose?.(); }}
-            className={`flex items-center gap-2.5 text-sm w-full text-left px-3 py-2 rounded-xl transition-all ${
-              filters.ratingMin === num.toString()
+            className={`flex items-center gap-2.5 text-sm w-full text-left px-3 py-2 rounded-xl transition-all ${filters.ratingMin === num.toString()
                 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold'
                 : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-0.5 text-amber-400">
               {Array(num).fill(0).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />)}
@@ -97,6 +123,7 @@ const ProductListings = () => {
 
   const { products, loading, pages, currentPage, filters } = useSelector((s) => s.products);
   const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [searchInput, setSearchInput] = useState(filters.keyword || '');
 
@@ -106,6 +133,23 @@ const ProductListings = () => {
       .then((res) => setCategories(res.data.data))
       .catch((err) => console.error('Failed to load categories', err));
   }, []);
+
+  // Fetch subcategories when category changes
+  useEffect(() => {
+    if (filters.category) {
+      const selectedCategory = categories.find((c) => c.slug === filters.category);
+      if (selectedCategory) {
+        API.get(`/subcategories/category/${selectedCategory._id}`)
+          .then((res) => setSubCategories(res.data.data))
+          .catch((err) => {
+            console.error('Failed to load subcategories', err);
+            setSubCategories([]);
+          });
+      }
+    } else {
+      setSubCategories([]);
+    }
+  }, [filters.category, categories]);
 
   // Sync URL category param
   useEffect(() => {
@@ -121,6 +165,7 @@ const ProductListings = () => {
       limit: LIMIT,
       keyword: filters.keyword,
       category: filters.category,
+      subcategory: filters.subCategory,
       priceMin: filters.priceMin,
       priceMax: filters.priceMax,
       ratingMin: filters.ratingMin,
@@ -143,6 +188,7 @@ const ProductListings = () => {
       limit: LIMIT,
       keyword: filters.keyword,
       category: filters.category,
+      subcategory: filters.subCategory,
       priceMin: filters.priceMin,
       priceMax: filters.priceMax,
       ratingMin: filters.ratingMin,
@@ -150,7 +196,7 @@ const ProductListings = () => {
     }));
   };
 
-  const hasActiveFilters = filters.keyword || filters.category || filters.priceMin || filters.priceMax || filters.ratingMin;
+  const hasActiveFilters = filters.keyword || filters.category || filters.subCategory || filters.priceMin || filters.priceMax || filters.ratingMin;
 
   // Build page number array (show max 5 pages around current)
   const getPageNumbers = () => {
@@ -181,7 +227,7 @@ const ProductListings = () => {
             placeholder="Search products..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full pl-10 pr-10 py-2.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm"
+            className="w-60 pl-10 pr-10 py-2.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm"
           />
           {searchInput && (
             <button
@@ -234,7 +280,13 @@ const ProductListings = () => {
           {filters.category && (
             <span className="inline-flex items-center gap-1.5 text-xs bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-full font-semibold">
               {categories.find((c) => c.slug === filters.category)?.name || filters.category}
-              <button onClick={() => handleFilterChange({ category: '' })} className="hover:opacity-70"><X className="w-3 h-3" /></button>
+              <button onClick={() => handleFilterChange({ category: '', subCategory: '' })} className="hover:opacity-70"><X className="w-3 h-3" /></button>
+            </span>
+          )}
+          {filters.subCategory && (
+            <span className="inline-flex items-center gap-1.5 text-xs bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 px-3 py-1 rounded-full font-semibold">
+              {subCategories.find((sc) => sc.slug === filters.subCategory)?.name || filters.subCategory}
+              <button onClick={() => handleFilterChange({ subCategory: '' })} className="hover:opacity-70"><X className="w-3 h-3" /></button>
             </span>
           )}
           {(filters.priceMin || filters.priceMax) && (
@@ -282,6 +334,7 @@ const ProductListings = () => {
           <FilterContent
             filters={filters}
             categories={categories}
+            subCategories={subCategories}
             handleFilterChange={handleFilterChange}
           />
         </aside>
@@ -354,11 +407,10 @@ const ProductListings = () => {
                 <button
                   key={p}
                   onClick={() => handlePageChange(p)}
-                  className={`w-9 h-9 rounded-full text-sm font-bold transition-all ${
-                    p === currentPage
+                  className={`w-9 h-9 rounded-full text-sm font-bold transition-all ${p === currentPage
                       ? 'bg-gradient-to-r from-cyan-500 to-indigo-500 text-white shadow-md shadow-cyan-500/20 border-transparent'
                       : 'border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
+                    }`}
                 >
                   {p}
                 </button>
@@ -433,6 +485,7 @@ const ProductListings = () => {
               <FilterContent
                 filters={filters}
                 categories={categories}
+                subCategories={subCategories}
                 handleFilterChange={handleFilterChange}
                 onClose={() => setShowMobileFilters(false)}
               />

@@ -46,7 +46,7 @@ export const ToastProvider = ({ children }) => {
       {children}
       
       {/* Toast Portal Container */}
-      <div className="fixed top-6 right-6 z-50 flex flex-col space-y-3.5 max-w-sm w-full pointer-events-none">
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col space-y-3.5 max-w-sm w-full pointer-events-none">
         <AnimatePresence>
           {toasts.map((t) => (
             <motion.div

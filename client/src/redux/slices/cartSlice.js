@@ -53,23 +53,29 @@ const cartSlice = createSlice({
   reducers: {
     addToCart: (state, action) => {
       const newItem = action.payload;
-      const existItem = state.cartItems.find(x => x.product === newItem.product && x.variant === newItem.variant);
+      const existItem = state.cartItems.find(
+        x => x.product === newItem.product && (x.variant || '') === (newItem.variant || '')
+      );
 
       if (existItem) {
         existItem.quantity = Math.min(existItem.quantity + newItem.quantity, existItem.stock);
       } else {
-        state.cartItems.push(newItem);
+        state.cartItems.push({ ...newItem, quantity: newItem.quantity || 1 });
       }
       calculateTotals(state);
     },
     removeFromCart: (state, action) => {
       const { product, variant } = action.payload;
-      state.cartItems = state.cartItems.filter(x => !(x.product === product && x.variant === variant));
+      state.cartItems = state.cartItems.filter(
+        x => !(x.product === product && (x.variant || '') === (variant || ''))
+      );
       calculateTotals(state);
     },
     updateCartQuantity: (state, action) => {
       const { product, variant, quantity } = action.payload;
-      const existItem = state.cartItems.find(x => x.product === product && x.variant === variant);
+      const existItem = state.cartItems.find(
+        x => x.product === product && (x.variant || '') === (variant || '')
+      );
       if (existItem) {
         existItem.quantity = Math.min(Math.max(Number(quantity), 1), existItem.stock);
       }

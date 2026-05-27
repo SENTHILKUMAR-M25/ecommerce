@@ -12,7 +12,8 @@ export const loginUser = createAsyncThunk(
       localStorage.setItem('aura_user', JSON.stringify(data));
       return data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Login failed';
+      return rejectWithValue(message);
     }
   }
 );
@@ -27,7 +28,8 @@ export const registerUser = createAsyncThunk(
       localStorage.setItem('aura_user', JSON.stringify(data));
       return data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Registration failed';
+      return rejectWithValue(message);
     }
   }
 );
@@ -39,7 +41,8 @@ export const getProfile = createAsyncThunk(
       const response = await API.get('/auth/profile');
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to fetch profile';
+      return rejectWithValue(message);
     }
   }
 );
@@ -53,7 +56,8 @@ export const updateProfile = createAsyncThunk(
       localStorage.setItem('aura_user', JSON.stringify(data));
       return data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Profile update failed';
+      return rejectWithValue(message);
     }
   }
 );

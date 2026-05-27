@@ -5,6 +5,18 @@ const variantSchema = new mongoose.Schema({
   options: [{ type: String, required: true }] // e.g., ['S', 'M', 'L'], ['Red', 'Blue']
 }, { _id: false });
 
+const sizeOptionSchema = new mongoose.Schema({
+  size: { type: String, required: true },
+  price: { type: Number, required: true, min: [1, 'Price must be greater than 0'] },
+  stock: { type: Number, required: true, min: [0, 'Stock cannot be negative'], default: 0 }
+}, { _id: false });
+
+const brandPriceSchema = new mongoose.Schema({
+  brand: { type: String, required: true },
+  type: { type: String, required: true },
+  price: { type: Number, required: true, min: 0 }
+}, { _id: false });
+
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -63,6 +75,11 @@ const productSchema = new mongoose.Schema({
     default: 0
   },
   variants: [variantSchema],
+  sizes: [sizeOptionSchema],
+  // Brand/type specific pricing. Example: [{ brand: 'Nike', type: 'Milano Loop', price: 199 }]
+  brandPrices: [brandPriceSchema],
+  // Optional product brand
+  brand: { type: String },
   colorImages: [{
     color: { type: String, required: true }, // The color name (e.g. 'Red')
     image: { type: String, required: true }  // The image URL corresponding to this color

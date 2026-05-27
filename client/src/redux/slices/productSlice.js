@@ -54,6 +54,7 @@ const initialState = {
     priceMin: '',
     priceMax: '',
     ratingMin: '',
+    subCategory: '',
     sort: 'newest'
   }
 };
@@ -72,6 +73,7 @@ const productSlice = createSlice({
         priceMin: '',
         priceMax: '',
         ratingMin: '',
+        subCategory: '',
         sort: 'newest'
       };
     },

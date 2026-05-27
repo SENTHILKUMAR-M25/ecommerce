@@ -9,7 +9,8 @@ export const fetchAnalytics = createAsyncThunk(
       const response = await API.get('/admin/analytics');
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to fetch analytics';
+      return rejectWithValue(message);
     }
   }
 );
@@ -21,7 +22,8 @@ export const fetchAdminLogs = createAsyncThunk(
       const response = await API.get('/admin/logs');
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to fetch logs';
+      return rejectWithValue(message);
     }
   }
 );
@@ -34,7 +36,8 @@ export const fetchAdminUsers = createAsyncThunk(
       const response = await API.get('/admin/users');
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to fetch users';
+      return rejectWithValue(message);
     }
   }
 );
@@ -46,7 +49,8 @@ export const toggleUserBlockState = createAsyncThunk(
       const response = await API.put(`/admin/users/${userId}/block`);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to toggle block state';
+      return rejectWithValue(message);
     }
   }
 );
@@ -59,7 +63,8 @@ export const fetchAdminCategories = createAsyncThunk(
       const response = await API.get('/categories');
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to fetch categories';
+      return rejectWithValue(message);
     }
   }
 );
@@ -71,7 +76,8 @@ export const addAdminCategory = createAsyncThunk(
       const response = await API.post('/categories', catData);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to add category';
+      return rejectWithValue(message);
     }
   }
 );
@@ -83,7 +89,8 @@ export const editAdminCategory = createAsyncThunk(
       const response = await API.put(`/categories/${id}`, catData);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to edit category';
+      return rejectWithValue(message);
     }
   }
 );
@@ -95,7 +102,8 @@ export const deleteAdminCategory = createAsyncThunk(
       await API.delete(`/categories/${id}`);
       return id;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to delete category';
+      return rejectWithValue(message);
     }
   }
 );
@@ -111,7 +119,8 @@ export const fetchAdminSubCategories = createAsyncThunk(
       return response.data.data;
 
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to fetch subcategories';
+      return rejectWithValue(message);
     }
   }
 );
@@ -130,7 +139,8 @@ export const addAdminSubCategory = createAsyncThunk(
       return response.data.data;
 
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to add subcategory';
+      return rejectWithValue(message);
     }
   }
 );
@@ -152,7 +162,8 @@ export const editAdminSubCategory = createAsyncThunk(
       return response.data.data;
 
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to edit subcategory';
+      return rejectWithValue(message);
     }
   }
 );
@@ -171,7 +182,8 @@ export const deleteAdminSubCategory = createAsyncThunk(
       return id;
 
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to delete subcategory';
+      return rejectWithValue(message);
     }
   }
 );
@@ -184,7 +196,8 @@ export const addAdminProduct = createAsyncThunk(
       const response = await API.post('/products', productData);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to add product';
+      return rejectWithValue(message);
     }
   }
 );
@@ -196,7 +209,8 @@ export const editAdminProduct = createAsyncThunk(
       const response = await API.put(`/products/${id}`, productData);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to edit product';
+      return rejectWithValue(message);
     }
   }
 );
@@ -208,7 +222,8 @@ export const deleteAdminProduct = createAsyncThunk(
       await API.delete(`/products/${id}`);
       return id;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to delete product';
+      return rejectWithValue(message);
     }
   }
 );
@@ -221,7 +236,8 @@ export const fetchAdminOrders = createAsyncThunk(
       const response = await API.get('/admin/orders');
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to fetch orders';
+      return rejectWithValue(message);
     }
   }
 );
@@ -233,7 +249,8 @@ export const updateAdminOrderStatus = createAsyncThunk(
       const response = await API.put(`/admin/orders/${id}`, { status });
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to update order status';
+      return rejectWithValue(message);
     }
   }
 );
@@ -245,7 +262,8 @@ export const fetchAdminCoupons = createAsyncThunk(
       const response = await API.get('/coupons');
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to fetch coupons';
+      return rejectWithValue(message);
     }
   }
 );
@@ -257,7 +275,8 @@ export const addAdminCoupon = createAsyncThunk(
       const response = await API.post('/coupons', couponData);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to add coupon';
+      return rejectWithValue(message);
     }
   }
 );
@@ -269,7 +288,8 @@ export const toggleCouponActiveState = createAsyncThunk(
       const response = await API.put(`/coupons/${couponId}/toggle`);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to toggle coupon state';
+      return rejectWithValue(message);
     }
   }
 );
@@ -281,7 +301,8 @@ export const deleteAdminCoupon = createAsyncThunk(
       await API.delete(`/coupons/${couponId}`);
       return couponId;
     } catch (error) {
-      return rejectWithValue(error);
+      const message = error.response?.data?.message || error.message || 'Failed to delete coupon';
+      return rejectWithValue(message);
     }
   }
 );
